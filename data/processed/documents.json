@@ -1,0 +1,81 @@
+[
+  {
+    "file": "01_Reglement_des_etudes_2026-2027.pdf",
+    "title": "Règlement des études du cycle ingénieur",
+    "reference": "EIH-DE-REG-2026",
+    "doc_type": "Règlement officiel",
+    "date": "2026-07-10",
+    "version": "1.0 (adoptée par le Conseil d'établissement le 2 juillet 2026)",
+    "status": "En vigueur à compter du 14 septembre 2026",
+    "pages": 4,
+    "modifies": []
+  },
+  {
+    "file": "02_Guide_stages_PFE_2026.pdf",
+    "title": "Guide des stages et du Projet de Fin d'Études",
+    "reference": "EIH-SRE-GUIDE-2026",
+    "doc_type": "Guide pratique",
+    "date": "2026-06-15",
+    "version": "3.0",
+    "status": "En vigueur pour l'année 2026-2027, sous réserve des notes de service ultérieures",
+    "pages": 3,
+    "modifies": []
+  },
+  {
+    "file": "03_Charte_mobilite_internationale.pdf",
+    "title": "Charte de mobilité internationale",
+    "reference": "EIH-BRI-CHARTE-2026",
+    "doc_type": "Charte et procédure",
+    "date": "2026-04-20",
+    "version": "2.1",
+    "status": "En vigueur ; s'applique aux candidatures déposées à partir de l'année 2026-2027",
+    "pages": 3,
+    "modifies": []
+  },
+  {
+    "file": "04_Calendrier_academique_2026-2027.pdf",
+    "title": "Calendrier académique 2026-2027",
+    "reference": "EIH-DE-CAL-2026",
+    "doc_type": "Calendrier officiel",
+    "date": "2026-07-10",
+    "version": "1.0",
+    "status": "En vigueur ; les modifications éventuelles sont publiées par note de service",
+    "pages": 2,
+    "modifies": []
+  },
+  {
+    "file": "05_Guide_vie_etudiante.pdf",
+    "title": "Guide de la vie étudiante et associative",
+    "reference": "EIH-BVE-GUIDE-2026",
+    "doc_type": "Guide d'information",
+    "date": "2026-09-01",
+    "version": "1.2",
+    "status": "En vigueur pour l'année 2026-2027",
+    "pages": 3,
+    "modifies": []
+  },
+  {
+    "file": "06_FAQ_Scolarite.pdf",
+    "title": "Foire aux questions — Scolarité",
+    "reference": "EIH-SCOL-FAQ-2026",
+    "doc_type": "FAQ (questions-réponses)",
+    "date": "2026-09-21",
+    "version": "1.0",
+    "status": "Document d'information ; en cas de divergence, les textes réglementaires prévalent",
+    "pages": 2,
+    "modifies": []
+  },
+  {
+    "file": "07_Note_de_service_2026-14.pdf",
+    "title": "Note de service n° 2026-14",
+    "reference": "EIH-DE-NS-2026-14",
+    "doc_type": "Note de service (texte modificatif)",
+    "date": "2026-10-05",
+    "version": "1.0",
+    "status": "En vigueur ; modifie partiellement le Guide des stages et du PFE (EIH-SRE-GUIDE-2026, version 3.0)",
+    "pages": 2,
+    "modifies": [
+      "EIH-SRE-GUIDE-2026"
+    ]
+  }
+]
