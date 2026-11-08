@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+data/vectorstore/*
+!data/vectorstore/.gitkeep
+__MACOSX/
+.idea/
+.vscode/
