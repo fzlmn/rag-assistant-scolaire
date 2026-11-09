@@ -193,3 +193,277 @@ La Note de service 2026-14 modifie le Guide des stages : durée minimale du PFE 
 ## Utilisation de l'IA générative
 
 Les outils d'IA générative utilisés pendant le projet sont déclarés au fil de l'eau dans `docs/journal-ia.md` (outil, partie concernée, vérification effectuée). Ce journal sert à l'annexe du rapport.
+
+
+## Travail réalisé — Aya
+
+Cette partie du projet concerne le découpage en taille fixe, la génération des embeddings, l'indexation vectorielle avec ChromaDB (une collection par stratégie) et la mise en place des endpoints API pour l'ingestion, la recherche documentaire et la vérification de l'état du service.
+
+### 1. Fonctionnalités développées
+
+#### 1.1. Découpage en taille fixe
+
+Fonction `decouper_taille_fixe()` dans `backend/app/chunking.py`.
+
+- Taille par défaut : **500 caractères**.
+- Chevauchement : **100 caractères**.
+- Conservation des métadonnées des fragments.
+- Deux stratégies disponibles dans le module d'ingestion :
+  - `structural` : découpage selon la structure du document.
+  - `fixed` : découpage selon une taille fixe.
+
+#### 1.2. Génération des embeddings
+
+Module `backend/app/embeddings.py`.
+
+Le modèle utilisé est `intfloat/multilingual-e5-small`. Il transforme les textes en vecteurs de dimension 384.
+
+- `encoder_passages()` : embeddings des fragments documentaires (préfixe `passage:`).
+- `encoder_requete()` : embedding d'une question (préfixe `query:`).
+- `generer_embeddings_chunks()` : un embedding par fragment, dans le même ordre.
+
+Les embeddings ne sont calculés que pour les fragments nouveaux (voir 1.3).
+
+#### 1.3. Stockage et recherche vectorielle
+
+Module `backend/app/store.py`, basé sur **ChromaDB** en mode persistant (`data/vectorstore/`).
+
+**Une collection par stratégie**, afin que les fragments ne se mélangent jamais et que les deux stratégies restent comparables :
+
+| Stratégie | Collection |
+|---|---|
+| `structural` | `eih_structural` |
+| `fixed` (500 / 100) | `eih_fixed_500_100` |
+
+Pour une autre taille ou un autre chevauchement, la collection prend le nom `eih_fixed_<taille>_<chevauchement>`.
+
+Fonctionnalités :
+- **Ingestion idempotente** : `ajouter_chunks()` n'ajoute que les fragments absents et retourne `added` et `skipped`. Relancer la même ingestion retourne `added: 0`, sans recalcul d'embeddings.
+- **Collection active** : `collection_active()` retourne la dernière collection ingérée. Elle lève `BaseIndisponible` si aucune ingestion n'a eu lieu ou si la base est vide.
+- **Recherche** : `rechercher()` retourne les k fragments les plus proches avec `score = 1 - distance`, et accepte un filtre par type de document (`where={"doc_type": ...}`).
+
+#### 1.4. API FastAPI
+
+Module `backend/app/main.py`.
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | Nombre de fragments indexés ; **503** si la base est vide ou indisponible |
+| POST | `/api/ingest` | Extrait, découpe et indexe ; retourne `added` et `skipped` ; écrit `documents.json` |
+| POST | `/api/search` | Recherche sans LLM : fragments et scores, avec filtre `filters.type` |
+
+Validations (erreur **422**) :
+- question vide ou composée uniquement d'espaces (`StringConstraints(strip_whitespace=True, min_length=1)`) ;
+- `overlap >= chunk_size` (`model_validator`).
+
+L'ingestion écrit `data/processed/documents.json` (métadonnées de chaque document et nombre de fragments), utilisé par l'endpoint `/api/documents`, qui appartient à une autre tâche du projet.
+
+---
+
+### 2. Installation et préparation
+
+Depuis la racine du projet :
+
+```bash
+source .venv/bin/activate
+cd backend
+```
+
+Si l'environnement virtuel n'existe pas encore :
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+pip install httpx
+```
+
+### 3. Exécution des tests
+
+Depuis le dossier `backend/` :
+
+```bash
+python -m pytest -v
+```
+
+Résultat obtenu :
+
+```text
+tests/test_extraction_decoupage.py::test_structurel_garde_question_et_reponse_ensemble PASSED
+tests/test_extraction_decoupage.py::test_ligne_de_tableau_devient_phrase PASSED
+tests/test_extraction_decoupage.py::test_pas_d_entete_ni_de_pied_de_page PASSED
+tests/test_extraction_decoupage.py::test_note_de_service_declare_ce_quelle_modifie PASSED
+tests/test_recherche.py::test_taille_fixe_max_500_caracteres PASSED
+tests/test_recherche.py::test_question_vide_renvoie_422 PASSED
+tests/test_recherche.py::test_ingestion_idempotente PASSED
+
+=========================== 7 passed ===========================
+```
+
+| Fichier | Test | Vérifie |
+|---|---|---|
+| `test_extraction_decoupage.py` | structurel | Une question de la FAQ et sa réponse restent ensemble |
+| | tableau | Les lignes de tableau gardent leurs en-têtes |
+| | en-têtes / pieds de page | Ils sont supprimés |
+| | note de service | Les métadonnées de la note modificative sont correctes |
+| `test_recherche.py` | taille fixe | Chaque fragment contient au maximum 500 caractères |
+| | question vide | `POST /api/search` avec `"   "` retourne 422 |
+| | idempotence | Deux ingestions identiques : le 2e appel retourne `added: 0` |
+
+### 4. Lancer l'API
+
+Depuis `backend/` :
+
+```bash
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+- API : `http://127.0.0.1:8001`
+- Swagger : `http://127.0.0.1:8001/docs`
+
+Si le port 8001 est déjà utilisé par une instance précédente, réutiliser celle-ci au lieu de lancer une deuxième instance.
+
+### 5. Tester les endpoints
+
+#### 5.1. État de l'API
+
+```bash
+curl -i http://127.0.0.1:8001/api/health
+```
+
+Avant toute ingestion (base vide) : **503**. Après ingestion :
+
+```json
+{
+  "status": "ok",
+  "fragments": 104
+}
+```
+
+#### 5.2. Ingestion
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "strategy": "fixed",
+    "chunk_size": 500,
+    "overlap": 100
+  }'
+```
+
+Premier appel :
+
+```json
+{
+  "strategy": "fixed",
+  "collection": "eih_fixed_500_100",
+  "documents": 7,
+  "fragments": 104,
+  "added": 104,
+  "skipped": 0
+}
+```
+
+Deuxième appel identique (idempotence) :
+
+```json
+{
+  "strategy": "fixed",
+  "collection": "eih_fixed_500_100",
+  "documents": 7,
+  "fragments": 104,
+  "added": 0,
+  "skipped": 104
+}
+```
+
+L'ingestion effectue :
+
+1. l'extraction du contenu des PDF ;
+2. le découpage selon la stratégie choisie ;
+3. l'écriture de `documents.json` ;
+4. le calcul des embeddings des seuls fragments absents de la collection ;
+5. l'indexation dans la collection de la stratégie, qui devient la collection active.
+
+Stratégie structurelle :
+
+```json
+{
+  "strategy": "structural"
+}
+```
+
+Paramètres invalides (`overlap >= chunk_size`) : réponse **422**.
+
+#### 5.3. Recherche sémantique
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Comment valider mon diplôme d ingénieur ?",
+    "top_k": 5,
+    "filters": {"type": null}
+  }'
+```
+
+La réponse contient :
+
+- la question envoyée ;
+- le nombre de résultats ;
+- les fragments retrouvés, avec leurs métadonnées ;
+- un `score` pour chaque fragment.
+
+**Filtre par type de document** : renseigner `filters.type` avec la valeur du champ `doc_type` (visible dans `metadata.doc_type` et dans `documents.json`). Seuls les fragments de ce type sont retournés.
+
+**Interprétation :** `score = 1 - distance` (similarité cosinus). Plus le score est élevé, plus le fragment est proche de la question. Il ne représente pas directement un pourcentage de pertinence ; il servira à fixer le seuil de refus lors de la génération.
+
+**Erreurs :**
+
+| Cas | Code |
+|---|---|
+| Question vide ou espaces seuls | 422 |
+| Aucune ingestion ou base vide | 503 |
+
+---
+
+### 6. Résultats obtenus
+
+| Élément | Résultat |
+|---|---|
+| Documents traités | 7 |
+| Fragments en taille fixe | 104 |
+| Modèle d'embeddings | multilingual-e5-small |
+| Dimension des vecteurs | 384 |
+| Base vectorielle | ChromaDB, une collection par stratégie |
+| Idempotence | 2e ingestion : `added: 0` |
+| Tests | 7/7 réussis |
+| API | Health, Ingest, Search |
+
+### 7. Fichiers concernés
+
+```text
+backend/
+├── app/
+│   ├── chunking.py
+│   ├── ingestion.py
+│   ├── embeddings.py
+│   ├── store.py
+│   └── main.py
+└── tests/
+    ├── test_extraction_decoupage.py
+    └── test_recherche.py
+
+data/
+├── processed/
+│   ├── chunks_fixed.json
+│   └── documents.json
+└── vectorstore/
+```
+
+### 8. Prochaine étape
+
+La prochaine étape consiste à intégrer la génération de réponses avec un LLM, la gestion des versions documentaires, le filtrage des résultats selon un seuil de pertinence (à partir du `score`) et l'endpoint `/api/ask`.
+
+Cette étape sera réalisée en coordination avec le développement du client LLM et du système de citations.
