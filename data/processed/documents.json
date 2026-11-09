@@ -8,7 +8,8 @@
     "version": "1.0 (adoptée par le Conseil d'établissement le 2 juillet 2026)",
     "status": "En vigueur à compter du 14 septembre 2026",
     "pages": 4,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 24
   },
   {
     "file": "02_Guide_stages_PFE_2026.pdf",
@@ -19,7 +20,8 @@
     "version": "3.0",
     "status": "En vigueur pour l'année 2026-2027, sous réserve des notes de service ultérieures",
     "pages": 3,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 19
   },
   {
     "file": "03_Charte_mobilite_internationale.pdf",
@@ -30,7 +32,8 @@
     "version": "2.1",
     "status": "En vigueur ; s'applique aux candidatures déposées à partir de l'année 2026-2027",
     "pages": 3,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 16
   },
   {
     "file": "04_Calendrier_academique_2026-2027.pdf",
@@ -41,7 +44,8 @@
     "version": "1.0",
     "status": "En vigueur ; les modifications éventuelles sont publiées par note de service",
     "pages": 2,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 12
   },
   {
     "file": "05_Guide_vie_etudiante.pdf",
@@ -52,7 +56,8 @@
     "version": "1.2",
     "status": "En vigueur pour l'année 2026-2027",
     "pages": 3,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 14
   },
   {
     "file": "06_FAQ_Scolarite.pdf",
@@ -63,7 +68,8 @@
     "version": "1.0",
     "status": "Document d'information ; en cas de divergence, les textes réglementaires prévalent",
     "pages": 2,
-    "modifies": []
+    "modifies": [],
+    "nb_fragments": 11
   },
   {
     "file": "07_Note_de_service_2026-14.pdf",
@@ -76,6 +82,7 @@
     "pages": 2,
     "modifies": [
       "EIH-SRE-GUIDE-2026"
-    ]
+    ],
+    "nb_fragments": 8
   }
 ]
