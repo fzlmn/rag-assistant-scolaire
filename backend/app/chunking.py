@@ -90,3 +90,66 @@ def decouper_structurel(pages, meta, taille_max=1200):
                                             entete + bloc.strip(), unite["page"], unite["section"]))
             # → dernier fragment de l'unité
     return fragments                                          # → tous les fragments du document
+# ---------- Stratégie (a) : taille fixe avec chevauchement ----------
+
+def decouper_taille_fixe(pages, meta, taille=500, chevauchement=100):
+    fragments = []
+    parametres = f"{taille}-{chevauchement}"
+    section = None
+
+    for page in pages:
+        texte_original = page["text"]
+
+        # Récupérer les titres avant de supprimer les marques ##
+        titres = re.findall(
+            r"^#{2,3} (.+)$",
+            texte_original,
+            flags=re.MULTILINE
+        )
+
+        texte = sans_marques_titre(texte_original).replace("\n", " ")
+
+        debut = 0
+
+        while debut < len(texte):
+            fin = min(debut + taille, len(texte))
+
+            # Éviter de couper un mot en deux
+            if fin < len(texte):
+                espace = texte.rfind(" ", debut, fin)
+                if espace > debut:
+                    fin = espace
+
+            morceau = texte[debut:fin].strip()
+
+            if morceau:
+                # Conserver le dernier titre rencontré
+                texte_avant = texte_original[:len(texte_original)]
+
+                for titre in titres:
+                    if titre in texte[:fin]:
+                        section = titre
+
+                fragments.append(
+                    creer_fragment(
+                        meta,
+                        "fixed",
+                        parametres,
+                        len(fragments),
+                        morceau,
+                        page["page"],
+                        section
+                    )
+                )
+
+            if fin >= len(texte):
+                break
+
+            debut = max(fin - chevauchement, debut + 1)
+
+            # Reprendre au début d'un mot
+            espace = texte.find(" ", debut)
+            if espace != -1 and espace < fin:
+                debut = espace + 1
+
+    return fragments
