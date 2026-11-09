@@ -1,6 +1,6 @@
 # backend/app/main.py
 # =============================================================================
-# RÔLE : API FastAPI — /api/health, /api/ingest, /api/search
+# RÔLE : API FastAPI — /api/health, /api/ingest, /api/search, /api/documents
 # Validation Pydantic → 422 (question vide, overlap >= chunk_size)
 # =============================================================================
 
@@ -11,6 +11,9 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.ingestion import ingerer
 from app.store import BaseIndisponible, collection_active, rechercher
+from app.config import DOSSIER_SORTIE               # → data/processed/
+
+import json                                         # → lecture de documents.json
 
 
 app = FastAPI(
@@ -84,3 +87,16 @@ def search(request: SearchRequest):
         "nombre_resultats": len(resultats),
         "resultats": resultats,
     }
+
+@app.get("/api/documents")                                    # → route GET /api/documents
+def documents():
+    try:
+        collection = collection_active()                      # → collection utilisée par la recherche
+    except BaseIndisponible as erreur:
+        raise HTTPException(status_code=503, detail=str(erreur))   # → 503 si aucune ingestion
+    docs = json.loads((DOSSIER_SORTIE / "documents.json").read_text(encoding="utf-8"))
+    # → métadonnées des 7 documents (écrites par /api/ingest)
+    fichiers = [m["file"] for m in collection.get(include=["metadatas"])["metadatas"]]
+    # → le nom de fichier de chaque fragment présent dans la base
+    return [{**d, "nb_fragments": fichiers.count(d["file"])} for d in docs]
+    # → chaque document avec son nombre de fragments, compté dans la base active
