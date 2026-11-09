@@ -193,3 +193,242 @@ La Note de service 2026-14 modifie le Guide des stages : durée minimale du PFE 
 ## Utilisation de l'IA générative
 
 Les outils d'IA générative utilisés pendant le projet sont déclarés au fil de l'eau dans `docs/journal-ia.md` (outil, partie concernée, vérification effectuée). Ce journal sert à l'annexe du rapport.
+
+
+## Travail réalisé — Aya
+
+Cette partie du projet concerne le découpage en taille fixe, la génération des embeddings, l'indexation vectorielle avec ChromaDB et la mise en place des endpoints API pour l'ingestion et la recherche documentaire.
+
+### 1. Fonctionnalités développées
+
+#### 1.1. Découpage en taille fixe
+
+Ajout de la fonction `decouper_taille_fixe()` dans `backend/app/chunking.py`.
+
+- Taille par défaut : **500 caractères**.
+- Chevauchement : **100 caractères**.
+- Conservation des métadonnées des fragments.
+- Possibilité de choisir entre deux stratégies :
+  - `structural` : découpage selon la structure du document.
+  - `fixed` : découpage selon une taille fixe.
+
+Les deux stratégies sont disponibles dans le module d'ingestion.
+
+#### 1.2. Génération des embeddings
+
+Création de `backend/app/embeddings.py`.
+
+Le modèle utilisé est :
+
+`intfloat/multilingual-e5-small`
+
+Ce modèle transforme les textes en vecteurs numériques de dimension 384.
+
+Deux fonctions principales sont disponibles :
+
+- `encoder_passages()` : génère les embeddings des fragments documentaires.
+- `encoder_requete()` : génère l'embedding d'une question utilisateur.
+
+Les préfixes `passage:` et `query:` sont utilisés conformément au fonctionnement du modèle E5.
+
+#### 1.3. Indexation et recherche vectorielle
+
+Création de `backend/app/vectorstore.py`.
+
+La base vectorielle utilisée est **ChromaDB**, en mode persistant.
+
+Fonctionnalités :
+- Indexation des fragments et de leurs embeddings.
+- Conservation des identifiants et métadonnées.
+- Recherche sémantique à partir d'une question.
+- Retour des fragments les plus proches avec leur distance.
+
+Les données sont stockées dans :
+
+`data/vectorstore/`
+
+#### 1.4. API FastAPI
+
+Création de `backend/app/main.py` avec trois endpoints.
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | Vérifie le fonctionnement de l'API |
+| POST | `/api/ingest` | Extrait, découpe et indexe les documents |
+| POST | `/api/search` | Recherche les fragments pertinents |
+
+**Remarque :** l'endpoint `/api/documents` n'est pas inclus dans cette partie, car il appartient à une autre tâche du projet.
+
+---
+
+### 2. Installation et préparation
+
+Depuis la racine du projet :
+
+```bash
+source backend/.venv/bin/activate
+cd backend
+```
+
+Si l'environnement virtuel n'existe pas encore :
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 3. Exécution des tests
+
+Depuis le dossier `backend/` :
+
+```bash
+python -m pytest -v
+```
+
+Résultat obtenu :
+
+```text
+tests/test_extraction_decoupage.py::test_structurel_garde_question_et_reponse_ensemble PASSED
+tests/test_extraction_decoupage.py::test_ligne_de_tableau_devient_phrase PASSED
+tests/test_extraction_decoupage.py::test_pas_d_entete_ni_de_pied_de_page PASSED
+tests/test_extraction_decoupage.py::test_note_de_service_declare_ce_quelle_modifie PASSED
+
+=========================== 4 passed ===========================
+```
+
+Les quatre tests existants passent après l'ajout du découpage en taille fixe.
+
+### 4. Lancer l'API
+
+Toujours depuis `backend/` :
+
+```bash
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+L'API est accessible à :
+
+`http://127.0.0.1:8001`
+
+La documentation interactive Swagger est disponible à :
+
+`http://127.0.0.1:8001/docs`
+
+Si le port 8001 est déjà utilisé par une instance précédente, réutiliser celle-ci au lieu de lancer une deuxième instance.
+
+### 5. Tester les endpoints
+
+#### 5.1. Vérifier l'état de l'API
+
+```bash
+curl http://127.0.0.1:8001/api/health
+```
+
+Résultat attendu :
+
+```json
+{
+  "status": "ok",
+  "message": "RAG Assistant Scolaire fonctionne."
+}
+```
+
+#### 5.2. Lancer l'ingestion
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/ingest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "strategie": "fixed",
+    "taille": 500,
+    "chevauchement": 100
+  }'
+```
+
+Résultat obtenu lors du test :
+
+```json
+{
+  "message": "Ingestion terminée avec succès.",
+  "strategie": "fixed",
+  "nombre_documents": 7,
+  "nombre_fragments": 104,
+  "nombre_chunks_indexes": 104
+}
+```
+
+L'ingestion effectue les opérations suivantes :
+
+1. Extraction du contenu des PDF.
+2. Découpage en fragments de taille fixe.
+3. Génération des embeddings.
+4. Indexation des fragments dans ChromaDB.
+
+Il est également possible de choisir la stratégie structurelle :
+
+```json
+{
+  "strategie": "structural"
+}
+```
+
+#### 5.3. Tester la recherche sémantique
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Comment valider mon diplôme d ingénieur ?",
+    "top_k": 5
+  }'
+```
+
+La réponse contient :
+
+- La question envoyée.
+- Le nombre de résultats.
+- Les fragments retrouvés.
+- Les métadonnées associées.
+- La distance calculée par ChromaDB.
+
+**Interprétation :** une distance plus faible indique généralement une meilleure proximité vectorielle. Elle ne représente pas directement un pourcentage de pertinence.
+
+---
+
+### 6. Résultats obtenus
+
+| Élément | Résultat |
+|---|---|
+| Documents traités | 7 |
+| Fragments en taille fixe | 104 |
+| Modèle d'embeddings | multilingual-e5-small |
+| Dimension des vecteurs | 384 |
+| Base vectorielle | ChromaDB |
+| Tests existants | 4/4 réussis |
+| API | Health, Ingest, Search |
+
+### 7. Fichiers concernés
+
+```text
+backend/
+├── app/
+│   ├── chunking.py
+│   ├── ingestion.py
+│   ├── embeddings.py
+│   ├── vectorstore.py
+│   └── main.py
+└── tests/
+    └── test_extraction_decoupage.py
+
+data/
+├── processed/
+│   └── chunks_fixed.json
+└── vectorstore/
+```
+
+### 8. Prochaine étape
+
+La prochaine étape consiste à intégrer la génération de réponses avec un LLM, la gestion des versions documentaires, le filtrage des résultats selon un seuil de pertinence et l'endpoint `/api/ask`.
+
+Cette étape sera réalisée en coordination avec le développement du client LLM et du système de citations.
