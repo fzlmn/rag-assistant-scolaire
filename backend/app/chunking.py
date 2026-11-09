@@ -123,8 +123,7 @@ def decouper_taille_fixe(pages, meta, taille=500, chevauchement=100):
             morceau = texte[debut:fin].strip()
 
             if morceau:
-                # Conserver le dernier titre rencontré
-                texte_avant = texte_original[:len(texte_original)]
+                
 
                 for titre in titres:
                     if titre in texte[:fin]:
