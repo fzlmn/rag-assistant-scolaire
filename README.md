@@ -197,67 +197,66 @@ Les outils d'IA générative utilisés pendant le projet sont déclarés au fil 
 
 ## Travail réalisé — Aya
 
-Cette partie du projet concerne le découpage en taille fixe, la génération des embeddings, l'indexation vectorielle avec ChromaDB et la mise en place des endpoints API pour l'ingestion et la recherche documentaire.
+Cette partie du projet concerne le découpage en taille fixe, la génération des embeddings, l'indexation vectorielle avec ChromaDB (une collection par stratégie) et la mise en place des endpoints API pour l'ingestion, la recherche documentaire et la vérification de l'état du service.
 
 ### 1. Fonctionnalités développées
 
 #### 1.1. Découpage en taille fixe
 
-Ajout de la fonction `decouper_taille_fixe()` dans `backend/app/chunking.py`.
+Fonction `decouper_taille_fixe()` dans `backend/app/chunking.py`.
 
 - Taille par défaut : **500 caractères**.
 - Chevauchement : **100 caractères**.
 - Conservation des métadonnées des fragments.
-- Possibilité de choisir entre deux stratégies :
+- Deux stratégies disponibles dans le module d'ingestion :
   - `structural` : découpage selon la structure du document.
   - `fixed` : découpage selon une taille fixe.
 
-Les deux stratégies sont disponibles dans le module d'ingestion.
-
 #### 1.2. Génération des embeddings
 
-Création de `backend/app/embeddings.py`.
+Module `backend/app/embeddings.py`.
 
-Le modèle utilisé est :
+Le modèle utilisé est `intfloat/multilingual-e5-small`. Il transforme les textes en vecteurs de dimension 384.
 
-`intfloat/multilingual-e5-small`
+- `encoder_passages()` : embeddings des fragments documentaires (préfixe `passage:`).
+- `encoder_requete()` : embedding d'une question (préfixe `query:`).
+- `generer_embeddings_chunks()` : un embedding par fragment, dans le même ordre.
 
-Ce modèle transforme les textes en vecteurs numériques de dimension 384.
+Les embeddings ne sont calculés que pour les fragments nouveaux (voir 1.3).
 
-Deux fonctions principales sont disponibles :
+#### 1.3. Stockage et recherche vectorielle
 
-- `encoder_passages()` : génère les embeddings des fragments documentaires.
-- `encoder_requete()` : génère l'embedding d'une question utilisateur.
+Module `backend/app/store.py`, basé sur **ChromaDB** en mode persistant (`data/vectorstore/`).
 
-Les préfixes `passage:` et `query:` sont utilisés conformément au fonctionnement du modèle E5.
+**Une collection par stratégie**, afin que les fragments ne se mélangent jamais et que les deux stratégies restent comparables :
 
-#### 1.3. Indexation et recherche vectorielle
+| Stratégie | Collection |
+|---|---|
+| `structural` | `eih_structural` |
+| `fixed` (500 / 100) | `eih_fixed_500_100` |
 
-Création de `backend/app/vectorstore.py`.
-
-La base vectorielle utilisée est **ChromaDB**, en mode persistant.
+Pour une autre taille ou un autre chevauchement, la collection prend le nom `eih_fixed_<taille>_<chevauchement>`.
 
 Fonctionnalités :
-- Indexation des fragments et de leurs embeddings.
-- Conservation des identifiants et métadonnées.
-- Recherche sémantique à partir d'une question.
-- Retour des fragments les plus proches avec leur distance.
-
-Les données sont stockées dans :
-
-`data/vectorstore/`
+- **Ingestion idempotente** : `ajouter_chunks()` n'ajoute que les fragments absents et retourne `added` et `skipped`. Relancer la même ingestion retourne `added: 0`, sans recalcul d'embeddings.
+- **Collection active** : `collection_active()` retourne la dernière collection ingérée. Elle lève `BaseIndisponible` si aucune ingestion n'a eu lieu ou si la base est vide.
+- **Recherche** : `rechercher()` retourne les k fragments les plus proches avec `score = 1 - distance`, et accepte un filtre par type de document (`where={"doc_type": ...}`).
 
 #### 1.4. API FastAPI
 
-Création de `backend/app/main.py` avec trois endpoints.
+Module `backend/app/main.py`.
 
 | Méthode | Endpoint | Description |
 |---|---|---|
-| GET | `/api/health` | Vérifie le fonctionnement de l'API |
-| POST | `/api/ingest` | Extrait, découpe et indexe les documents |
-| POST | `/api/search` | Recherche les fragments pertinents |
+| GET | `/api/health` | Nombre de fragments indexés ; **503** si la base est vide ou indisponible |
+| POST | `/api/ingest` | Extrait, découpe et indexe ; retourne `added` et `skipped` ; écrit `documents.json` |
+| POST | `/api/search` | Recherche sans LLM : fragments et scores, avec filtre `filters.type` |
 
-**Remarque :** l'endpoint `/api/documents` n'est pas inclus dans cette partie, car il appartient à une autre tâche du projet.
+Validations (erreur **422**) :
+- question vide ou composée uniquement d'espaces (`StringConstraints(strip_whitespace=True, min_length=1)`) ;
+- `overlap >= chunk_size` (`model_validator`).
+
+L'ingestion écrit `data/processed/documents.json` (métadonnées de chaque document et nombre de fragments), utilisé par l'endpoint `/api/documents`, qui appartient à une autre tâche du projet.
 
 ---
 
@@ -266,7 +265,7 @@ Création de `backend/app/main.py` avec trois endpoints.
 Depuis la racine du projet :
 
 ```bash
-source backend/.venv/bin/activate
+source .venv/bin/activate
 cd backend
 ```
 
@@ -275,7 +274,8 @@ Si l'environnement virtuel n'existe pas encore :
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
+pip install httpx
 ```
 
 ### 3. Exécution des tests
@@ -293,106 +293,138 @@ tests/test_extraction_decoupage.py::test_structurel_garde_question_et_reponse_en
 tests/test_extraction_decoupage.py::test_ligne_de_tableau_devient_phrase PASSED
 tests/test_extraction_decoupage.py::test_pas_d_entete_ni_de_pied_de_page PASSED
 tests/test_extraction_decoupage.py::test_note_de_service_declare_ce_quelle_modifie PASSED
+tests/test_recherche.py::test_taille_fixe_max_500_caracteres PASSED
+tests/test_recherche.py::test_question_vide_renvoie_422 PASSED
+tests/test_recherche.py::test_ingestion_idempotente PASSED
 
-=========================== 4 passed ===========================
+=========================== 7 passed ===========================
 ```
 
-Les quatre tests existants passent après l'ajout du découpage en taille fixe.
+| Fichier | Test | Vérifie |
+|---|---|---|
+| `test_extraction_decoupage.py` | structurel | Une question de la FAQ et sa réponse restent ensemble |
+| | tableau | Les lignes de tableau gardent leurs en-têtes |
+| | en-têtes / pieds de page | Ils sont supprimés |
+| | note de service | Les métadonnées de la note modificative sont correctes |
+| `test_recherche.py` | taille fixe | Chaque fragment contient au maximum 500 caractères |
+| | question vide | `POST /api/search` avec `"   "` retourne 422 |
+| | idempotence | Deux ingestions identiques : le 2e appel retourne `added: 0` |
 
 ### 4. Lancer l'API
 
-Toujours depuis `backend/` :
+Depuis `backend/` :
 
 ```bash
 python -m uvicorn app.main:app --reload --port 8001
 ```
 
-L'API est accessible à :
-
-`http://127.0.0.1:8001`
-
-La documentation interactive Swagger est disponible à :
-
-`http://127.0.0.1:8001/docs`
+- API : `http://127.0.0.1:8001`
+- Swagger : `http://127.0.0.1:8001/docs`
 
 Si le port 8001 est déjà utilisé par une instance précédente, réutiliser celle-ci au lieu de lancer une deuxième instance.
 
 ### 5. Tester les endpoints
 
-#### 5.1. Vérifier l'état de l'API
+#### 5.1. État de l'API
 
 ```bash
-curl http://127.0.0.1:8001/api/health
+curl -i http://127.0.0.1:8001/api/health
 ```
 
-Résultat attendu :
+Avant toute ingestion (base vide) : **503**. Après ingestion :
 
 ```json
 {
   "status": "ok",
-  "message": "RAG Assistant Scolaire fonctionne."
+  "fragments": 104
 }
 ```
 
-#### 5.2. Lancer l'ingestion
+#### 5.2. Ingestion
 
 ```bash
 curl -X POST http://127.0.0.1:8001/api/ingest \
   -H "Content-Type: application/json" \
   -d '{
-    "strategie": "fixed",
-    "taille": 500,
-    "chevauchement": 100
+    "strategy": "fixed",
+    "chunk_size": 500,
+    "overlap": 100
   }'
 ```
 
-Résultat obtenu lors du test :
+Premier appel :
 
 ```json
 {
-  "message": "Ingestion terminée avec succès.",
-  "strategie": "fixed",
-  "nombre_documents": 7,
-  "nombre_fragments": 104,
-  "nombre_chunks_indexes": 104
+  "strategy": "fixed",
+  "collection": "eih_fixed_500_100",
+  "documents": 7,
+  "fragments": 104,
+  "added": 104,
+  "skipped": 0
 }
 ```
 
-L'ingestion effectue les opérations suivantes :
-
-1. Extraction du contenu des PDF.
-2. Découpage en fragments de taille fixe.
-3. Génération des embeddings.
-4. Indexation des fragments dans ChromaDB.
-
-Il est également possible de choisir la stratégie structurelle :
+Deuxième appel identique (idempotence) :
 
 ```json
 {
-  "strategie": "structural"
+  "strategy": "fixed",
+  "collection": "eih_fixed_500_100",
+  "documents": 7,
+  "fragments": 104,
+  "added": 0,
+  "skipped": 104
 }
 ```
 
-#### 5.3. Tester la recherche sémantique
+L'ingestion effectue :
+
+1. l'extraction du contenu des PDF ;
+2. le découpage selon la stratégie choisie ;
+3. l'écriture de `documents.json` ;
+4. le calcul des embeddings des seuls fragments absents de la collection ;
+5. l'indexation dans la collection de la stratégie, qui devient la collection active.
+
+Stratégie structurelle :
+
+```json
+{
+  "strategy": "structural"
+}
+```
+
+Paramètres invalides (`overlap >= chunk_size`) : réponse **422**.
+
+#### 5.3. Recherche sémantique
 
 ```bash
 curl -X POST http://127.0.0.1:8001/api/search \
   -H "Content-Type: application/json" \
   -d '{
     "question": "Comment valider mon diplôme d ingénieur ?",
-    "top_k": 5
+    "top_k": 5,
+    "filters": {"type": null}
   }'
 ```
 
 La réponse contient :
 
-- La question envoyée.
-- Le nombre de résultats.
-- Les fragments retrouvés.
-- Les métadonnées associées.
-- La distance calculée par ChromaDB.
+- la question envoyée ;
+- le nombre de résultats ;
+- les fragments retrouvés, avec leurs métadonnées ;
+- un `score` pour chaque fragment.
 
-**Interprétation :** une distance plus faible indique généralement une meilleure proximité vectorielle. Elle ne représente pas directement un pourcentage de pertinence.
+**Filtre par type de document** : renseigner `filters.type` avec la valeur du champ `doc_type` (visible dans `metadata.doc_type` et dans `documents.json`). Seuls les fragments de ce type sont retournés.
+
+**Interprétation :** `score = 1 - distance` (similarité cosinus). Plus le score est élevé, plus le fragment est proche de la question. Il ne représente pas directement un pourcentage de pertinence ; il servira à fixer le seuil de refus lors de la génération.
+
+**Erreurs :**
+
+| Cas | Code |
+|---|---|
+| Question vide ou espaces seuls | 422 |
+| Aucune ingestion ou base vide | 503 |
 
 ---
 
@@ -404,8 +436,9 @@ La réponse contient :
 | Fragments en taille fixe | 104 |
 | Modèle d'embeddings | multilingual-e5-small |
 | Dimension des vecteurs | 384 |
-| Base vectorielle | ChromaDB |
-| Tests existants | 4/4 réussis |
+| Base vectorielle | ChromaDB, une collection par stratégie |
+| Idempotence | 2e ingestion : `added: 0` |
+| Tests | 7/7 réussis |
 | API | Health, Ingest, Search |
 
 ### 7. Fichiers concernés
@@ -416,19 +449,21 @@ backend/
 │   ├── chunking.py
 │   ├── ingestion.py
 │   ├── embeddings.py
-│   ├── vectorstore.py
+│   ├── store.py
 │   └── main.py
 └── tests/
-    └── test_extraction_decoupage.py
+    ├── test_extraction_decoupage.py
+    └── test_recherche.py
 
 data/
 ├── processed/
-│   └── chunks_fixed.json
+│   ├── chunks_fixed.json
+│   └── documents.json
 └── vectorstore/
 ```
 
 ### 8. Prochaine étape
 
-La prochaine étape consiste à intégrer la génération de réponses avec un LLM, la gestion des versions documentaires, le filtrage des résultats selon un seuil de pertinence et l'endpoint `/api/ask`.
+La prochaine étape consiste à intégrer la génération de réponses avec un LLM, la gestion des versions documentaires, le filtrage des résultats selon un seuil de pertinence (à partir du `score`) et l'endpoint `/api/ask`.
 
 Cette étape sera réalisée en coordination avec le développement du client LLM et du système de citations.
