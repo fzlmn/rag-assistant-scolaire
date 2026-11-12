@@ -156,8 +156,8 @@ La Note de service 2026-14 modifie le Guide des stages : durée minimale du PFE 
 
 | Séance | Jalon | Responsable | État |
 |---|---|---|---|
-| 1 | Extraction et découpage : fragments et métadonnées en JSON | Personne 1 (extraction, structurel) + Personne 2 (taille fixe) | En cours |
-| 2 | Indexation et recherche : `/api/ingest` et `/api/search` testés dans `/docs` | Personne 2 (embeddings, Chroma, API) + Personne 1 (`/api/documents`) | En cours |
+| 1 | Extraction et découpage : fragments et métadonnées en JSON | Fatima Zahra (extraction, structurel) + Aya (taille fixe) | Terminé |
+| 2 | Indexation et recherche : `/api/ingest` et `/api/search` testés dans `/docs` | Aya (embeddings, Chroma, API) + Fatima Zahra (`/api/documents`) | Terminé |
 | 3 | Génération : `/api/ask` avec citations, refus et seuil | | À faire |
 | 4 | Frontend : conversation, sources, gestion des erreurs | | À faire |
 | 5 | Évaluation : jeu de test, script, comparaison de configurations | | À faire |
@@ -165,6 +165,7 @@ La Note de service 2026-14 modifie le Guide des stages : durée minimale du PFE 
 ### Journal
 
 - **Semaine du 2 novembre 2026** — Mise en place du dépôt et du README.
+- **Semaine du 9 novembre 2026** — Séances 1 et 2 terminées : extraction (texte, tableaux, métadonnées) et découpage structurel (Fatima Zahra), découpage à taille fixe, embeddings e5, base Chroma, routes health/ingest/search (Aya), route documents (Fatima Zahra). 104 / 93 fragments, 7 tests.
 
 ---
 
