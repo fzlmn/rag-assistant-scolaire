@@ -10,6 +10,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.ingestion import ingerer
+from app.llm import ErreurLLM                       # → le LLM ne répond pas (→ 502)
+from app.rag import repondre                        # → chaîne complète de /api/ask
 from app.store import BaseIndisponible, collection_active, rechercher
 from app.config import DOSSIER_SORTIE               # → data/processed/
 
@@ -34,6 +36,30 @@ class SearchRequest(BaseModel):
     question: Question
     top_k: int = Field(default=5, ge=1, le=20)
     filters: Filters = Field(default_factory=Filters)
+
+
+class AskRequest(SearchRequest):
+    """Même forme que /api/search : question non vide, top_k (1 à 20), filters.type."""
+
+
+class Source(BaseModel):
+    id: int                                         # → numéro cité dans la réponse : [1], [2]…
+    chunk_id: str
+    file: str
+    reference: str
+    date: str
+    page: Optional[int] = None
+    section: Optional[str] = None
+    excerpt: str
+    score: float
+
+
+class AskResponse(BaseModel):
+    answer: str
+    found: bool                                     # → False = refus (hors corpus)
+    sources: list[Source]
+    invalid_citations: list[int]
+    latency_ms: int
 
 
 class IngestRequest(BaseModel):
@@ -100,3 +126,15 @@ def documents():
     # → le nom de fichier de chaque fragment présent dans la base
     return [{**d, "nb_fragments": fichiers.count(d["file"])} for d in docs]
     # → chaque document avec son nombre de fragments, compté dans la base active
+
+
+@app.post("/api/ask", response_model=AskResponse)
+def ask(request: AskRequest):
+    try:
+        return repondre(request.question, top_k=request.top_k, doc_type=request.filters.type)
+    except BaseIndisponible as erreur:
+        raise HTTPException(status_code=503, detail=str(erreur))     # → base absente ou vide
+    except ErreurLLM as erreur:
+        raise HTTPException(status_code=502, detail=str(erreur))     # → le LLM ne répond pas
+    except Exception as erreur:
+        raise HTTPException(status_code=500, detail=str(erreur))
