@@ -41,3 +41,10 @@ def test_llm_sans_cle_leve_erreur(monkeypatch):
     monkeypatch.setattr(llm, "GROQ_API_KEY", "")                      # → …sans clé
     with pytest.raises(llm.ErreurLLM):                                # → generer doit lever ErreurLLM (→ 502)
         llm.generer([{"role": "user", "content": "test"}])
+
+
+def test_citations_avec_crochets_speciaux_normalisees():
+    texte = llm.nettoyer_reponse("Le rapport est déposé 14 jours avant【1】【3】.")
+    assert texte == "Le rapport est déposé 14 jours avant[1][3]."
+    assert extraire_citations(texte) == [1, 3]
+    # → les crochets 【】 de gpt-oss deviennent [] et les citations sont reconnues
