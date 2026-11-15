@@ -31,6 +31,7 @@ def _simuler(monkeypatch, score=0.9, reponse="18 semaines [1]."):
         appels.append(messages)
         return reponse
     monkeypatch.setattr(rag, "generer", faux_llm)
+    monkeypatch.setattr(rag, "completer_avec_versions", lambda question, fragments: fragments)   # → versions testées à part
     return appels
 
 

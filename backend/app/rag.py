@@ -1,7 +1,7 @@
 # backend/app/rag.py
 # =============================================================================
 # RÔLE : la chaîne complète d'une question — recherche → seuil → prompt → LLM → vérification des citations.
-#   - repondre() → dictionnaire au format de la réponse de /api/ask
+#   - repondre() → dictionnaire au format de la réponse de /api/ask (avec gestion des versions, voir versions.py)
 # SÉANCE 3 — Aya.
 # Exigences du sujet (4.4) : seuil de score (refus sans appeler le LLM), vérification des citations.
 # =============================================================================
@@ -13,6 +13,7 @@ from app.config import SEUIL_SCORE                      # → seuil de refus (r�
 from app.llm import generer                             # → appel au modèle de langage (lève ErreurLLM)
 from app.prompt import MESSAGE_REFUS, construire_messages  # → phrase de refus + messages system/user
 from app.store import rechercher                        # → top-k fragments avec leur score
+from app.versions import completer_avec_versions        # → ajoute les documents qui modifient ceux trouvés
 
 LONGUEUR_EXTRAIT = 300                                  # → nombre de caractères gardés dans « excerpt »
 
@@ -60,6 +61,8 @@ def repondre(question, top_k=5, doc_type=None):
     meilleur = max((f["score"] for f in fragments), default=None)      # → meilleur score (None si aucun résultat)
     if meilleur is None or meilleur < SEUIL_SCORE:
         return _reponse(MESSAGE_REFUS, False, [], [], debut)           # → refus direct : le LLM n'est PAS appelé
+
+    fragments = completer_avec_versions(question, fragments)           # → ajoute la note qui modifie un document trouvé
 
     texte = generer(construire_messages(question, fragments)).strip()  # → peut lever ErreurLLM (→ 502)
 

@@ -98,8 +98,21 @@ def ajouter_chunks(nom: str, chunks: list[dict]) -> tuple[int, int]:
     return len(nouveaux), len(chunks) - len(nouveaux)
 
 
-def rechercher(question: str, top_k: int = 5, doc_type: str | None = None) -> list[dict]:
-    """Top-k fragments les plus proches ; score = 1 - distance (cosinus)."""
+def construire_filtre(doc_type: str | None = None, reference: str | None = None) -> dict | None:
+    """Filtre Chroma sur les métadonnées : type de document et/ou référence exacte (None = pas de filtre)."""
+    conditions = []
+    if doc_type:
+        conditions.append({"doc_type": doc_type})        # → filtre par type de document
+    if reference:
+        conditions.append({"reference": reference})      # → filtre par référence (ex. EIH-DE-NS-2026-14)
+    if not conditions:
+        return None
+    return conditions[0] if len(conditions) == 1 else {"$and": conditions}   # → Chroma exige $and pour 2 conditions
+
+
+def rechercher(question: str, top_k: int = 5, doc_type: str | None = None,
+               reference: str | None = None) -> list[dict]:
+    """Top-k fragments les plus proches ; score = 1 - distance (cosinus). Filtres facultatifs : type, référence."""
     collection = collection_active()
     embedding = encoder_requete(question)
 
@@ -108,8 +121,9 @@ def rechercher(question: str, top_k: int = 5, doc_type: str | None = None) -> li
         "n_results": top_k,
         "include": ["documents", "metadatas", "distances"],
     }
-    if doc_type:
-        options["where"] = {"doc_type": doc_type}       # → filtre par type de document
+    filtre = construire_filtre(doc_type, reference)
+    if filtre:
+        options["where"] = filtre                       # → filtre par type et/ou référence
 
     resultats = collection.query(**options)
 
