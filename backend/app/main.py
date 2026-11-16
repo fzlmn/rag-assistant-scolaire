@@ -7,6 +7,7 @@
 from typing import Annotated, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.ingestion import ingerer
@@ -22,6 +23,17 @@ app = FastAPI(
     title="RAG Assistant Scolaire",
     description="API de recherche documentaire pour les étudiants.",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Question : espaces retirés AVANT min_length → "   " devient "" → rejetée (422)

@@ -75,3 +75,15 @@ def test_llm_en_panne_renvoie_502(monkeypatch):
 
 def test_question_vide_renvoie_422():
     assert client.post("/api/ask", json={"question": "   "}).status_code == 422
+
+
+def test_cors_preflight_angular():
+    r = client.options(
+        "/api/ask",
+        headers={
+            "Origin": "http://localhost:4200",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert r.status_code == 200
+    assert r.headers.get("access-control-allow-origin") == "http://localhost:4200"
