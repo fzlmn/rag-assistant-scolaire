@@ -19,6 +19,12 @@ class ErreurLLM(Exception):
     # → erreur « maison » : le modèle ne répond pas (clé absente, réseau, quota…) ; l'API la transforme en 502
 
 
+def nettoyer_reponse(texte):
+    """Uniformise les citations : certains modèles (ex. gpt-oss) écrivent 【1】 au lieu de [1]."""
+    return texte.replace("【", "[").replace("】", "]")
+    # → sans cela, citations.py ne reconnaîtrait pas ces numéros et le frontend ne pourrait pas les rendre cliquables
+
+
 def generer(messages):
     """Envoie la liste de messages au modèle et renvoie le texte de sa réponse."""
     try:
@@ -30,7 +36,7 @@ def generer(messages):
                 timeout=LLM_DELAI,                                       # → abandonne après LLM_DELAI secondes
             )
             reponse.raise_for_status()                                   # → lève une erreur si le code HTTP n'est pas 2xx
-            return reponse.json()["message"]["content"]                  # → texte de la réponse d'Ollama
+            return nettoyer_reponse(reponse.json()["message"]["content"])  # → texte de la réponse d'Ollama, citations uniformisées
 
         if not GROQ_API_KEY:                                             # → pas de clé dans .env
             raise ErreurLLM("Clé GROQ_API_KEY absente du fichier .env")
@@ -42,7 +48,7 @@ def generer(messages):
             timeout=LLM_DELAI,
         )
         reponse.raise_for_status()                                       # → 401 (mauvaise clé), 429 (quota)… → erreur
-        return reponse.json()["choices"][0]["message"]["content"]        # → texte de la réponse de Groq
+        return nettoyer_reponse(reponse.json()["choices"][0]["message"]["content"])  # → texte de la réponse de Groq, citations uniformisées
     except ErreurLLM:                                                    # → notre propre erreur : on la laisse passer
         raise
     except (httpx.HTTPError, KeyError, ValueError) as e:                 # → réseau, délai dépassé, réponse inattendue

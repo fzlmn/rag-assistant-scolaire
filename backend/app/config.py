@@ -33,3 +33,4 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")                     # → clé Groq
 LLM_MODELE = os.getenv("LLM_MODEL", "openai/gpt-oss-120b")       # → nom du modèle à appeler (Llama 3.3 retiré de Groq)
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")   # → adresse d'Ollama s'il est utilisé
 LLM_DELAI = float(os.getenv("LLM_TIMEOUT", "30"))                # → secondes d'attente maximum avant d'abandonner
+SEUIL_SCORE = float(os.getenv("SCORE_THRESHOLD", "0.80"))
