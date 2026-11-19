@@ -1,0 +1,13 @@
+<!-- frontend/src/app/app.html — barre de navigation + écran courant (Aya) -->
+<header class="barre">
+  <span class="titre">Assistant scolaire EIH</span>
+  <nav>
+    <!-- → routerLinkActive ajoute la classe « actif » au lien de l'écran affiché -->
+    <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }">Conversation</a>
+    <a routerLink="/documents" routerLinkActive="actif">Documents</a>
+    <a routerLink="/recherche" routerLinkActive="actif">Recherche</a>
+  </nav>
+</header>
+<main>
+  <router-outlet />  <!-- → l'écran choisi s'affiche ici -->
+</main>
