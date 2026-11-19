@@ -7,6 +7,7 @@
 from typing import Annotated, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware  # → autorise le frontend à appeler l'API
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.ingestion import ingerer
@@ -23,7 +24,12 @@ app = FastAPI(
     description="API de recherche documentaire pour les étudiants.",
     version="1.0.0",
 )
-
+app.add_middleware(                                           # → CORS (séance 4)
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Question : espaces retirés AVANT min_length → "   " devient "" → rejetée (422)
 Question = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 

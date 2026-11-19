@@ -1,0 +1,21 @@
+/* frontend/src/app/app.css — style de la barre de navigation (Aya) */
+.barre {                                   /* → barre du haut */
+  display: flex;
+  flex-wrap: wrap;                         /* → passe à la ligne sur mobile */
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #1f3a5f;
+  color: #fff;
+}
+.titre { font-weight: 600; }
+nav { display: flex; gap: 4px; }
+nav a {
+  color: #dbe6f3;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+nav a.actif { background: #ffffff22; color: #fff; } /* → lien de l'écran affiché */
+main { padding: 16px; max-width: 1100px; margin: 0 auto; }
