@@ -52,5 +52,5 @@ export interface DocumentInfo {    // → un élément de GET /api/documents
   status: string;
   pages: number;
   modifies: string[];              // → références des documents qu'il modifie
-  chunks: number;                  // → nombre de fragments indexés
+  nb_fragments: number;            // → nombre de fragments indexés (nom renvoyé par /api/documents)
 }
