@@ -1,1 +1,60 @@
-<p>chat works!</p>
+<!-- frontend/src/app/pages/chat/chat.html — écran Conversation (Fatima Zahra) -->
+<div class="disposition">
+<section class="conversation">
+<!-- Réglages : top_k et filtre par type -->
+<div class="reglages">
+    <label>top_k
+    <input type="number" min="1" max="20" [(ngModel)]="topK" />
+    </label>
+    <label>Type
+    <select [(ngModel)]="type">
+        <option [ngValue]="null">Tous les documents</option>
+        @for (t of types(); track t) { <option [ngValue]="t">{{ t }}</option> }
+    </select>
+    </label>
+</div>
+
+<!-- Historique de la session -->
+<div class="historique">
+    @if (echanges().length === 0) {
+    <p class="aide">Posez une question sur le règlement, les stages, la mobilité, le calendrier…</p>
+    }
+    @for (e of echanges(); track $index; let i = $index) {
+    <div class="bulle question">{{ e.question }}</div>
+    @if (e.erreur) {
+        <div class="bulle erreur">{{ e.erreur }}</div>                 <!-- → erreur 422 / 502 / 503 -->
+    } @else if (e.reponse) {
+        <!-- → « refus » : style distinct quand la réponse n'est pas dans le corpus -->
+        <div class="bulle reponse" [class.refus]="!e.reponse.found">
+        @for (m of e.morceaux; track $index) {
+            @if (m.citations) {
+            @for (n of m.citations; track n) {
+                <!-- → citation cliquable ; désactivée (en rouge) si elle ne correspond à aucun fragment -->
+                <button class="citation" [disabled]="e.reponse.invalid_citations.includes(n)" (click)="choisirSource(i, n)">[{{ n }}]</button>
+            }
+            } @else {
+            <span>{{ m.texte }}</span>
+            }
+        }
+        <div class="details">
+            {{ e.reponse.latency_ms }} ms
+            @if (e.reponse.invalid_citations.length) {
+            · citations invalides : {{ e.reponse.invalid_citations.join(', ') }}
+            }
+        </div>
+        </div>
+    } @else {
+        <div class="chargement">Recherche dans les documents…</div>     <!-- → indicateur de chargement -->
+    }
+    }
+</div>
+
+<!-- Saisie -->
+<form class="saisie" (ngSubmit)="envoyer()">
+    <input name="question" [(ngModel)]="question" placeholder="Votre question…" [disabled]="enCours()" />
+    <button type="submit" [disabled]="enCours() || !question.trim()">Envoyer</button>  <!-- → désactivé pendant l'appel -->
+</form>
+</section>
+
+<app-sources [sources]="sourcesAffichees()" [selection]="selection()" />
+</div>
