@@ -1,0 +1,21 @@
+/* frontend/src/app/pages/chat/chat.css (Fatima Zahra) */
+.disposition { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+@media (max-width: 800px) {                         /* → sur mobile : panneau des sources sous la conversation */
+  .disposition { grid-template-columns: 1fr; }
+}
+.reglages { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.reglages input { width: 70px; margin-left: 6px; }
+.reglages select { margin-left: 6px; max-width: 220px; }
+.historique { display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+.aide { color: #5a6b7d; }
+.bulle { padding: 10px 12px; border-radius: 8px; max-width: 95%; white-space: pre-line; }
+.question { align-self: flex-end; background: #1f3a5f; color: #fff; }
+.reponse { align-self: flex-start; background: #fff; border: 1px solid #e3e8ee; }
+.reponse.refus { background: #fff8e1; border-color: #f0c36d; font-style: italic; }  /* → style distinct du refus */
+.citation {                                          /* → [1] cliquable */
+  padding: 0 4px; margin: 0 1px; background: #e3ecf7; color: #1f3a5f; font-weight: 600; border-radius: 4px;
+}
+.citation:disabled { background: #fdecea; color: #8a1c13; }  /* → citation invalide */
+.details { margin-top: 6px; font-size: 0.8em; color: #5a6b7d; }
+.saisie { display: flex; gap: 8px; margin-top: 12px; }
+.saisie input { flex: 1; min-width: 0; }

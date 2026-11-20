@@ -1,0 +1,21 @@
+<!-- frontend/src/app/components/sources/sources.html — panneau des sources (Fatima Zahra) -->
+<aside class="panneau">
+<h3>Sources</h3>
+@if (sources().length === 0) {
+    <p class="vide">Cliquez sur une citation [1], [2]… pour voir sa source.</p>
+}
+@for (s of sources(); track s.chunk_id) {
+    <!-- → une carte par source ; « selectionnee » si c'est celle qu'on a cliquée -->
+    <article [id]="'source-' + s.id" class="source" [class.selectionnee]="s.id === selection()">
+    <div class="entete">
+        <strong>[{{ s.id }}] {{ s.reference }}</strong>
+        <span class="score">score {{ s.score.toFixed(3) }}</span>
+    </div>
+    <div class="meta">
+        {{ s.file }} · page {{ s.page }} · {{ s.date }}
+        @if (s.section) { · {{ s.section }} }
+    </div>
+    <p class="extrait">{{ s.excerpt }}…</p>
+    </article>
+}
+</aside>

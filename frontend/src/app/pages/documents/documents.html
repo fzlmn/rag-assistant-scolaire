@@ -1,1 +1,29 @@
-<p>documents works!</p>
+<!-- frontend/src/app/pages/documents/documents.html — écran Documents (Fatima Zahra) -->
+<h2>Documents indexés</h2>
+@if (enCours()) { <p class="chargement">Chargement…</p> }
+@if (erreur()) { <p class="erreur">{{ erreur() }}</p> }
+@if (documents().length) {
+<div class="defilement">                    <!-- → défilement horizontal du tableau sur mobile -->
+<table>
+    <thead>
+    <tr><th>Document</th><th>Référence</th><th>Type</th><th>Date</th><th>Version</th><th>Fragments</th><th>Statut</th></tr>
+    </thead>
+    <tbody>
+    @for (d of documents(); track d.file) {
+        <tr>
+        <td>{{ d.title }}<br /><small>{{ d.file }}</small></td>
+        <td>{{ d.reference }}</td>
+        <td>{{ d.doc_type }}</td>
+        <td>{{ d.date }}</td>
+        <td>{{ d.version }}</td>
+        <td>{{ d.nb_fragments }}</td>
+        <td>
+            {{ d.status }}
+            @if (d.modifies.length) { <br /><strong>Modifie : {{ d.modifies.join(', ') }}</strong> }
+        </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+}

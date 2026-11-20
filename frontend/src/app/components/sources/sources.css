@@ -1,0 +1,10 @@
+/* frontend/src/app/components/sources/sources.css (Fatima Zahra) */
+.panneau { background: #fff; border-radius: 8px; padding: 12px; max-height: 70vh; overflow-y: auto; }
+h3 { margin: 0 0 8px; }
+.vide { color: #5a6b7d; font-size: 0.9em; }
+.source { border: 1px solid #e3e8ee; border-radius: 6px; padding: 8px; margin-bottom: 8px; }
+.source.selectionnee { border-color: #1f3a5f; background: #eef3f9; }  /* → source cliquée mise en évidence */
+.entete { display: flex; justify-content: space-between; gap: 8px; }
+.score { color: #5a6b7d; font-size: 0.85em; white-space: nowrap; }
+.meta { color: #5a6b7d; font-size: 0.85em; margin: 4px 0; }
+.extrait { margin: 0; font-size: 0.9em; white-space: pre-line; }       /* → garde les retours à la ligne */
