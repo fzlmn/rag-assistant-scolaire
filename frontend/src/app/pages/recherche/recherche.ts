@@ -1,6 +1,4 @@
-
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -43,13 +41,8 @@ export class Recherche {
         next: (resultat) => {
           this.response = resultat;
         },
-        error: (err: HttpErrorResponse) => {
-          const detail = err.error?.detail;
-
-          this.error =
-            typeof detail === 'string'
-              ? detail
-              : 'Impossible de contacter le serveur. Vérifiez que le backend est démarré.';
+        error: (e: Error) => {
+          this.error = e.message;                            // → message clair préparé par l'intercepteur
         },
       });
   }
