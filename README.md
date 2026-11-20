@@ -137,6 +137,7 @@ python -m app.ingestion
 ```powershell
 uvicorn app.main:app --reload
 ```
+uvicorn app.main:app --reload
 
 Documentation interactive : http://localhost:8000/docs
 
@@ -393,7 +394,7 @@ Les tests de `/api/ask` remplacent la recherche et le LLM par des versions simul
 Depuis `backend/` :
 
 ```bash
-python -m uvicorn app.main:app --reload --port 8001
+python -m uvicorn app.main:app --reload --port 8002
 ```
 
 - API : `http://127.0.0.1:8001`
