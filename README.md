@@ -137,7 +137,6 @@ python -m app.ingestion
 ```powershell
 uvicorn app.main:app --reload
 ```
-uvicorn app.main:app --reload
 
 Documentation interactive : http://localhost:8000/docs
 
@@ -394,7 +393,7 @@ Les tests de `/api/ask` remplacent la recherche et le LLM par des versions simul
 Depuis `backend/` :
 
 ```bash
-python -m uvicorn app.main:app --reload --port 8002
+python -m uvicorn app.main:app --reload --port 8001
 ```
 
 - API : `http://127.0.0.1:8001`
@@ -490,11 +489,11 @@ curl -X POST http://127.0.0.1:8001/api/search \
 La réponse contient :
 
 - la question envoyée ;
-- le nombre de résultats ;
-- les fragments retrouvés, avec leurs métadonnées ;
-- un `score` pour chaque fragment.
+- `results` : les fragments retrouvés, avec leurs métadonnées à plat (`file`, `reference`, `doc_type`, `page`, `section`…) ;
+- un `score` pour chaque fragment ;
+- `latency_ms` : le temps de la recherche.
 
-**Filtre par type de document** : renseigner `filters.type` avec la valeur du champ `doc_type` (visible dans `metadata.doc_type` et dans `documents.json`). Seuls les fragments de ce type sont retournés.
+**Filtre par type de document** : renseigner `filters.type` avec la valeur du champ `doc_type` (visible dans le champ `doc_type` de chaque résultat et dans `documents.json`). Seuls les fragments de ce type sont retournés.
 
 **Interprétation :** `score = 1 - distance` (similarité cosinus). Plus le score est élevé, plus le fragment est proche de la question. Il ne représente pas directement un pourcentage de pertinence ; il sert à fixer le seuil de refus de `/api/ask`.
 
