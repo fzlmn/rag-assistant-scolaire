@@ -15,7 +15,10 @@
           placeholder="Saisissez votre question..."
           rows="3"
           required
+          (keydown.enter)="$event.preventDefault(); rechercher()"
         ></textarea>
+        <!-- → Entrée seule lance la recherche ; Maj + Entrée n'est pas capté et fait un retour à la ligne -->
+        <small class="astuce">Entrée pour rechercher · Maj + Entrée pour aller à la ligne</small>
       </div>
 
       <div class="filters">
