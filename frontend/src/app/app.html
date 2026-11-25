@@ -1,13 +1,36 @@
-<!-- frontend/src/app/app.html — barre de navigation + écran courant (Aya) -->
-<header class="barre">
-  <span class="titre">Assistant scolaire EIH</span>
+<!-- frontend/src/app/app.html — barre du haut, menu latéral et écran courant -->
+<header class="haut">
+  <button class="burger" type="button" [class.ouvert]="menu()" [attr.aria-expanded]="menu()" aria-controls="menu" aria-label="Ouvrir ou fermer le menu" (click)="basculer()">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="marque" routerLink="/" (click)="fermer()">
+    <app-logo [taille]="34" />
+    <span class="nom"><strong>EIH</strong><small>École d'Ingénierie et d'Humanités</small></span>
+  </a>
+  <a class="btn" routerLink="/conversation">Assistant scolaire</a>
+</header>
+
+<div class="voile" [class.ouvert]="menu()" (click)="fermer()"></div>
+<aside id="menu" class="lateral" [class.ouvert]="menu()" [attr.aria-hidden]="!menu()">
+  <div class="lateral-tete">
+    <app-logo [taille]="44" />
+    <div><strong>EIH</strong><small>Campus numérique</small></div>
+  </div>
+  <p class="etiquette">Navigation</p>
   <nav>
     <!-- → routerLinkActive ajoute la classe « actif » au lien de l'écran affiché -->
-    <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }">Conversation</a>
-    <a routerLink="/documents" routerLinkActive="actif">Documents</a>
-    <a routerLink="/recherche" routerLinkActive="actif">Recherche</a>
+    <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" (click)="fermer()">
+      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10" /></svg>Accueil</a>
+    <a routerLink="/conversation" routerLinkActive="actif" (click)="fermer()">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" /></svg>Conversation</a>
+    <a routerLink="/documents" routerLinkActive="actif" (click)="fermer()">
+      <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5" /></svg>Documents</a>
+    <a routerLink="/recherche" routerLinkActive="actif" (click)="fermer()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></svg>Recherche</a>
   </nav>
-</header>
+  <p class="lateral-pied">© 2026 EIH · établissement fictif</p>
+</aside>
+
 <main>
   <router-outlet />  <!-- → l'écran choisi s'affiche ici -->
 </main>

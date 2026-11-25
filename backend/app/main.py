@@ -17,6 +17,7 @@ from app.store import BaseIndisponible, collection_active, rechercher
 from app.config import DOSSIER_SORTIE               # → data/processed/
 
 import json                                         # → lecture de documents.json
+import time                                         # → chronomètre pour latency_ms
 
 
 app = FastAPI(
@@ -103,6 +104,7 @@ def ingest(request: IngestRequest):
 
 @app.post("/api/search")
 def search(request: SearchRequest):
+    debut = time.perf_counter()                      # → départ du chronomètre
     try:
         resultats = rechercher(
             request.question,
@@ -116,8 +118,11 @@ def search(request: SearchRequest):
 
     return {
         "question": request.question,
-        "nombre_resultats": len(resultats),
-        "resultats": resultats,
+        "results": [                                          # → nom attendu par le frontend et par run_eval.py
+            {**r["metadata"], "chunk_id": r["chunk_id"], "text": r["text"], "score": r["score"]}
+            for r in resultats                                # → métadonnées « à plat » : file, reference, doc_type, page…
+        ],
+        "latency_ms": int((time.perf_counter() - debut) * 1000),  # → temps de la recherche en millisecondes
     }
 
 @app.get("/api/documents")                                    # → route GET /api/documents

@@ -1,0 +1,47 @@
+<!-- frontend/src/app/pages/accueil/accueil.html — page d'accueil de l'EIH (établissement fictif) -->
+<section class="hero">
+  <div class="hero-texte">
+    <span class="pastille">Campus numérique · Rentrée 2026</span>
+    <h1>Former les ingénieurs et les penseurs de <em>demain</em>.</h1>
+    <p>L'École d'Ingénierie et d'Humanités associe sciences, technologies et sciences humaines dans un campus ouvert sur le monde.</p>
+    <div class="actions">
+      <a class="btn" routerLink="/conversation">Poser une question</a>
+      <a class="btn clair" routerLink="/documents">Explorer les documents</a>
+    </div>
+  </div>
+  <div class="hero-visuel" aria-hidden="true">
+    <span class="rond r1"></span><span class="rond r2"></span>
+    <div class="carte-logo"><app-logo [taille]="84" /><strong>EIH</strong><small>Depuis 1987</small></div>
+    <span class="puce p1">Ingénierie</span><span class="puce p2">Humanités</span><span class="puce p3">Design</span>
+  </div>
+</section>
+
+<section class="chiffres">
+  @for (c of chiffres; track c.label; let i = $index) {
+    <div [style.--i]="i"><strong>{{ c.valeur }}</strong><span>{{ c.label }}</span></div>
+  }
+</section>
+
+<section class="bloc">
+  <h2>Nos formations</h2>
+  <p class="sous">Quatre grands domaines, des parcours à la carte.</p>
+  <div class="grille">
+    @for (f of formations; track f.titre; let i = $index) {
+      <article class="carte" [style.--i]="i"><span class="num">0{{ i + 1 }}</span><h3>{{ f.titre }}</h3><p>{{ f.texte }}</p></article>
+    }
+  </div>
+</section>
+
+<section class="bloc assistant">
+  <div>
+    <h2>L'assistant scolaire</h2>
+    <p class="sous">Posez vos questions sur le règlement, les stages, la mobilité ou le calendrier : chaque réponse cite ses sources.</p>
+  </div>
+  <div class="liens">
+    <a routerLink="/conversation">Conversation <span>→</span></a>
+    <a routerLink="/documents">Documents indexés <span>→</span></a>
+    <a routerLink="/recherche">Recherche documentaire <span>→</span></a>
+  </div>
+</section>
+
+<footer class="pied">© 2026 EIH — École d'Ingénierie et d'Humanités · établissement fictif à visée pédagogique.</footer>

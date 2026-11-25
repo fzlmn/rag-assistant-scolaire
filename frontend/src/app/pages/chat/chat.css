@@ -1,21 +1,24 @@
-/* frontend/src/app/pages/chat/chat.css (Fatima Zahra) */
-.disposition { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-@media (max-width: 800px) {                         /* → sur mobile : panneau des sources sous la conversation */
-  .disposition { grid-template-columns: 1fr; }
-}
-.reglages { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
-.reglages input { width: 70px; margin-left: 6px; }
-.reglages select { margin-left: 6px; max-width: 220px; }
-.historique { display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
-.aide { color: #5a6b7d; }
-.bulle { padding: 10px 12px; border-radius: 8px; max-width: 95%; white-space: pre-line; }
-.question { align-self: flex-end; background: #1f3a5f; color: #fff; }
-.reponse { align-self: flex-start; background: #fff; border: 1px solid #e3e8ee; }
-.reponse.refus { background: #fff8e1; border-color: #f0c36d; font-style: italic; }  /* → style distinct du refus */
+/* frontend/src/app/pages/chat/chat.css — écran Conversation */
+.disposition { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 800px) { .disposition { grid-template-columns: 1fr; } } /* → sur mobile : panneau des sources sous la conversation */
+.conversation { padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--ombre); }
+.reglages { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding: 10px 12px; border-radius: 12px; background: var(--v-soft); }
+.reglages label { display: flex; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+.reglages input { width: 70px; margin-left: 8px; padding: 5px 9px; }
+.reglages select { margin-left: 8px; max-width: 220px; padding: 5px 9px; }
+.historique { display: flex; flex-direction: column; gap: 12px; min-height: 220px; }
+.aide { margin: auto; padding: 26px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 14px; }
+.bulle { max-width: 92%; padding: 11px 15px; border-radius: 18px; white-space: pre-line; animation: monter 0.4s both; }
+.question { align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; background: var(--v); }
+.reponse { align-self: flex-start; border-bottom-left-radius: 4px; background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--o); }
+.reponse.refus { background: var(--o-soft); border-color: #ffd9b8; font-style: italic; }  /* → style distinct du refus */
 .citation {                                          /* → [1] cliquable */
-  padding: 0 4px; margin: 0 1px; background: #e3ecf7; color: #1f3a5f; font-weight: 600; border-radius: 4px;
+  min-width: 28px; margin: 0 2px; padding: 0 8px; border: 1px solid #ffd2ab; border-radius: 99px; font-size: 0.78rem; color: var(--o-ink); background: var(--o-soft);
 }
-.citation:disabled { background: #fdecea; color: #8a1c13; }  /* → citation invalide */
-.details { margin-top: 6px; font-size: 0.8em; color: #5a6b7d; }
-.saisie { display: flex; gap: 8px; margin-top: 12px; }
-.saisie input { flex: 1; min-width: 0; }
+.citation:hover:not(:disabled) { background: var(--o); border-color: var(--o); color: #fff; box-shadow: none; }
+.citation:disabled { opacity: 1; background: #f4f2f8; border-color: var(--line); color: var(--muted); text-decoration: line-through; } /* → citation invalide */
+.details { margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+.saisie { display: flex; gap: 10px; margin-top: 18px; }
+.saisie input { flex: 1; min-width: 0; padding: 11px 18px; border-radius: 99px; }
+.saisie button { padding-inline: 24px; border-radius: 99px; }
+@keyframes monter { from { opacity: 0; transform: translateY(12px); } }

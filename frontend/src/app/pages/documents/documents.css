@@ -1,3 +1,14 @@
-/* frontend/src/app/pages/documents/documents.css (Fatima Zahra) */
-.defilement { overflow-x: auto; }   /* → le tableau défile horizontalement sur petit écran */
-small { color: #5a6b7d; }
+/* frontend/src/app/pages/documents/documents.css — écran Documents */
+h2 { margin: 0 0 18px; font-size: clamp(1.5rem, 3vw, 1.9rem); color: var(--v); }
+.defilement { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--ombre); } /* → défile sur petit écran */
+table { width: 100%; border-collapse: collapse; }
+th { padding: 12px 16px; text-align: left; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--v-soft); }
+td { padding: 14px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+tbody tr { transition: background 0.2s; animation: monter 0.4s both; }
+tbody tr:hover { background: #fcfbff; }
+tbody tr:nth-child(2) { animation-delay: 60ms; } tbody tr:nth-child(3) { animation-delay: 120ms; }
+tbody tr:nth-child(4) { animation-delay: 180ms; } tbody tr:nth-child(n+5) { animation-delay: 240ms; }
+tbody tr:last-child td { border-bottom: 0; }
+td strong { color: var(--o-ink); }
+small { color: var(--muted); }
+@keyframes monter { from { opacity: 0; transform: translateY(8px); } }
