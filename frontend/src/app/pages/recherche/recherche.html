@@ -32,14 +32,14 @@
         </div>
 
         <div class="form-group">
-          <label for="type">Type de document (facultatif)</label>
-          <input
-            id="type"
-            name="type"
-            type="text"
-            [(ngModel)]="type"
-            placeholder="Ex. : rapport, procédure..."
-          />
+          <label for="type">Type de document</label>
+          <!-- → liste des types exacts : le filtre de Chroma ne trouve rien si le type n'est pas écrit à l'identique -->
+          <select id="type" name="type" [(ngModel)]="type">
+            <option value="">Tous les documents</option>
+            @for (t of types(); track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
         </div>
       </div>
 

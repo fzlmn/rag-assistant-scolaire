@@ -6,7 +6,7 @@
 // SÉANCE 4 — Fatima Zahra. Exigences du sujet (6) : écran Conversation et exigences d'interface.
 // =============================================================================
 
-import { Component, OnInit, inject, signal } from '@angular/core'; // → signal() : valeur qui met l'écran à jour
+import { Component, ElementRef, Injector, OnInit, afterNextRender, inject, signal, viewChild } from '@angular/core'; // → signal() : valeur qui met l'écran à jour
 import { FormsModule } from '@angular/forms';                // → [(ngModel)] pour lier les champs du formulaire
 
 import { Sources } from '../../components/sources/sources';  // → panneau des sources
@@ -40,6 +40,7 @@ function avecGras(texte: string): Morceau[] {
 
 export function decouper(texte: string): Morceau[] {
   // → « A [1] B [2, 3] » → [{texte:"A "}, {citations:[1]}, {texte:" B "}, {citations:[2,3]}]
+  texte = texte.replace(/\n\s*\n+/g, '\n').trim();           // → plusieurs lignes vides du modèle → un seul retour à la ligne
   const morceaux: Morceau[] = [];
   const motif = /\[(\d+(?:\s*,\s*\d+)*)\]/g;                 // → même motif que citations.py côté backend
   let debut = 0;                                             // → position après la dernière citation
@@ -60,6 +61,8 @@ export function decouper(texte: string): Morceau[] {
 })
 export class Chat implements OnInit {
   private api = inject(RagApiService);                       // → service d'appel à l'API
+  private injector = inject(Injector);                       // → nécessaire à afterNextRender() hors du constructeur
+  private zoneMessages = viewChild<ElementRef<HTMLElement>>('historique'); // → la zone des messages, qui défile
 
   question = '';                                             // → texte saisi
   topK = 5;                                                  // → nombre de fragments (réglable)
@@ -89,18 +92,29 @@ export class Chat implements OnInit {
       .map((e) => ({ question: e.question, answer: e.reponse!.answer }));
     const index = this.echanges().length;                    // → position de ce nouvel échange
     this.echanges.update((liste) => [...liste, { question }]); // → ajoute la question à l'historique
+    this.descendre();                                        // → montre la question et l'indicateur de chargement
     this.api.poser(question, this.topK, this.type, historique).subscribe({
       next: (reponse) => {                                   // → réponse reçue
         this.modifier(index, { reponse, morceaux: decouper(reponse.answer) });
         this.sourcesAffichees.set(reponse.sources);          // → le panneau montre les sources de la dernière réponse
         this.selection.set(null);
         this.enCours.set(false);
+        this.descendre();
       },
       error: (e: Error) => {                                 // → erreur (message préparé par l'intercepteur)
         this.modifier(index, { erreur: e.message });
         this.enCours.set(false);
+        this.descendre();
       },
     });
+  }
+
+  private descendre(): void {
+    // → une fois le nouveau message affiché, fait défiler la zone des messages tout en bas
+    afterNextRender(() => {
+      const zone = this.zoneMessages()?.nativeElement;
+      zone?.scrollTo({ top: zone.scrollHeight, behavior: 'smooth' });
+    }, { injector: this.injector });
   }
 
   poserExemple(question: string): void {

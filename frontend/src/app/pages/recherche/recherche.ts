@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -12,12 +12,20 @@ import { ReponseRecherche } from '../../core/models';
   templateUrl: './recherche.html',
   styleUrl: './recherche.css',
 })
-export class Recherche {
+export class Recherche implements OnInit {
   private api = inject(RagApiService);
 
   question = '';
   topK = 5;
-  type = '';
+  type = '';                                                 // → '' = tous les documents
+  types = signal<string[]>([]);                              // → types exacts, lus dans /api/documents (comme dans le chat)
+
+  ngOnInit(): void {
+    this.api.documents().subscribe({
+      next: (docs) => this.types.set([...new Set(docs.map((d) => d.doc_type))]), // → sans doublon
+      error: () => this.types.set([]),                       // → base pas prête : seul « Tous les documents » reste
+    });
+  }
 
   loading = signal(false);                                   // → signals : Angular 21 (sans zone.js) met l'écran
   error = signal('');                                        //   à jour quand ils changent, même après une réponse HTTP
