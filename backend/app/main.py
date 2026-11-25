@@ -46,8 +46,16 @@ class SearchRequest(BaseModel):
     filters: Filters = Field(default_factory=Filters)
 
 
+class EchangePrecedent(BaseModel):
+    """Un échange déjà affiché dans le chat, renvoyé pour comprendre une question de suivi (« et la max ? »)."""
+    question: str = Field(max_length=2000)
+    answer: str = Field(max_length=4000)
+
+
 class AskRequest(SearchRequest):
-    """Même forme que /api/search : question non vide, top_k (1 à 20), filters.type."""
+    """Même forme que /api/search : question non vide, top_k (1 à 20), filters.type,
+    plus l'historique facultatif de la conversation (les anciens appels sans « history » restent valides)."""
+    history: list[EchangePrecedent] = Field(default_factory=list, max_length=10)
 
 
 class Source(BaseModel):
@@ -68,6 +76,7 @@ class AskResponse(BaseModel):
     sources: list[Source]
     invalid_citations: list[int]
     latency_ms: int
+    question_comprise: Optional[str] = None         # → la question reformulée (None si refus avant reformulation)
 
 
 class IngestRequest(BaseModel):
@@ -157,7 +166,8 @@ def document_pdf(fichier: str, download: bool = False):
 @app.post("/api/ask", response_model=AskResponse)
 def ask(request: AskRequest):
     try:
-        return repondre(request.question, top_k=request.top_k, doc_type=request.filters.type)
+        return repondre(request.question, top_k=request.top_k, doc_type=request.filters.type,
+                        historique=[e.model_dump() for e in request.history])   # → derniers échanges du chat
     except BaseIndisponible as erreur:
         raise HTTPException(status_code=503, detail=str(erreur))     # → base absente ou vide
     except ErreurLLM as erreur:

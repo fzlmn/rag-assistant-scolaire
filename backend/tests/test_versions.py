@@ -67,7 +67,8 @@ def test_ask_donne_la_note_au_llm(monkeypatch):
 
     resultat = rag.repondre("durée du PFE ?")
 
-    assert "EIH-DE-NS-2026-14" in messages_recus[0][1]["content"]        # → la note est dans le prompt
+    assert "EIH-DE-NS-2026-14" in messages_recus[-1][1]["content"]       # → la note est dans le prompt de réponse
+    # → [-1] : le dernier appel au LLM est la réponse ; le premier est la reformulation de la question
     assert [s["id"] for s in resultat["sources"]] == [1, 2]              # → et dans les sources numérotées
     assert resultat["invalid_citations"] == []
 

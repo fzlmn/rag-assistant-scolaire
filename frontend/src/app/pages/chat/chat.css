@@ -3,7 +3,9 @@
 /* → minmax(0, …) : une colonne ne s'élargit pas pour un contenu trop long (la rangée d'exemples défile à la place) */
 @media (max-width: 800px) { .disposition { grid-template-columns: minmax(0, 1fr); } } /* → sur mobile : panneau des sources sous la conversation */
 .conversation { min-width: 0; padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--ombre); }
-.reglages { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding: 10px 12px; border-radius: 12px; background: var(--v-soft); }
+.reglages { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 16px; padding: 10px 12px; border-radius: 12px; background: var(--v-soft); }
+.nouvelle { margin-left: auto; padding: 5px 13px; border-radius: 99px; font-size: 0.8rem; color: var(--v); background: #fff; border-color: var(--line); } /* → à droite des réglages */
+.nouvelle:hover:not(:disabled) { color: var(--v); background: #fff; border-color: var(--v-2); box-shadow: none; transform: none; }
 .reglages label { display: flex; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
 .reglages input { width: 70px; margin-left: 8px; padding: 5px 9px; }
 .reglages select { margin-left: 8px; max-width: 220px; padding: 5px 9px; }
@@ -19,6 +21,7 @@
 .citation:hover:not(:disabled) { background: var(--o); border-color: var(--o); color: #fff; box-shadow: none; }
 .citation:disabled { opacity: 1; background: #f4f2f8; border-color: var(--line); color: var(--muted); text-decoration: line-through; } /* → citation invalide */
 .details { margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
+.comprise { display: block; margin-top: 2px; font-style: italic; }   /* → « Question comprise : … » sous la réponse */
 .saisie { display: flex; gap: 10px; margin-top: 18px; }
 .saisie input { flex: 1; min-width: 0; padding: 11px 18px; border-radius: 99px; }
 .saisie button { padding-inline: 24px; border-radius: 99px; }
