@@ -7,7 +7,15 @@
     <app-logo [taille]="34" />
     <span class="nom"><strong>EIH</strong><small>École d'Ingénierie et d'Humanités</small></span>
   </a>
-  <a class="btn" routerLink="/conversation">Assistant scolaire</a>
+  <!-- → barre de navigation sur grand écran ; en dessous de 820 px, elle est remplacée par le hamburger (app.css) -->
+  <nav class="raccourcis" aria-label="Accès rapide">
+    <a routerLink="/conversation" routerLinkActive="actif" title="Poser une question à l'assistant">
+      <app-icone nom="conversation" /><span>Conversation</span></a>
+    <a routerLink="/documents" routerLinkActive="actif" title="Documents indexés">
+      <app-icone nom="documents" /><span>Documents</span></a>
+    <a routerLink="/recherche" routerLinkActive="actif" title="Recherche documentaire">
+      <app-icone nom="recherche" /><span>Recherche</span></a>
+  </nav>
 </header>
 
 <div class="voile" [class.ouvert]="menu()" (click)="fermer()"></div>
@@ -20,13 +28,13 @@
   <nav>
     <!-- → routerLinkActive ajoute la classe « actif » au lien de l'écran affiché -->
     <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" (click)="fermer()">
-      <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10" /></svg>Accueil</a>
+      <app-icone nom="accueil" />Accueil</a>
     <a routerLink="/conversation" routerLinkActive="actif" (click)="fermer()">
-      <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z" /></svg>Conversation</a>
+      <app-icone nom="conversation" />Conversation</a>
     <a routerLink="/documents" routerLinkActive="actif" (click)="fermer()">
-      <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5" /></svg>Documents</a>
+      <app-icone nom="documents" />Documents</a>
     <a routerLink="/recherche" routerLinkActive="actif" (click)="fermer()">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></svg>Recherche</a>
+      <app-icone nom="recherche" />Recherche</a>
   </nav>
   <p class="lateral-pied">© 2026 EIH · établissement fictif</p>
 </aside>

@@ -2,11 +2,12 @@
 import { Component, HostListener, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'; // → liens et zone d'affichage
 
+import { Icone } from './components/icone/icone';
 import { Logo } from './components/logo/logo';
 
 @Component({
   selector: 'app-root',                                      // → balise <app-root> de index.html
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Logo], // → composant standalone : il déclare ce qu'il utilise
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Logo, Icone], // → composant standalone : il déclare ce qu'il utilise
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
