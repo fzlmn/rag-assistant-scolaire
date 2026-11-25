@@ -17,7 +17,7 @@
 <!-- Historique de la session -->
 <div class="historique">
     @if (echanges().length === 0) {
-    <p class="aide">Posez une question sur le règlement, les stages, la mobilité, le calendrier…</p>
+    <p class="aide">Posez une question sur le règlement, les stages, la mobilité, le calendrier…<br />ou choisissez un exemple ci-dessous.</p>
     }
     @for (e of echanges(); track $index; let i = $index) {
     <div class="bulle question">{{ e.question }}</div>
@@ -46,6 +46,14 @@
     } @else {
         <div class="chargement">Recherche dans les documents…</div>     <!-- → indicateur de chargement -->
     }
+    }
+</div>
+
+<!-- Questions d'exemple : une rangée qui défile, juste au-dessus de la saisie -->
+<div class="exemples" aria-label="Questions d'exemple" (wheel)="defilerExemples($event)">
+    @for (q of exemples; track q) {
+    <!-- → un clic envoie la question ; désactivé pendant qu'une réponse est attendue -->
+    <button type="button" class="puce" [disabled]="enCours()" (click)="poserExemple(q)">{{ q }}</button>
     }
 </div>
 
