@@ -8,13 +8,14 @@ from typing import Annotated, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware  # → autorise le frontend à appeler l'API
+from fastapi.responses import FileResponse           # → renvoie un fichier (le PDF d'un document)
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from app.ingestion import ingerer
 from app.llm import ErreurLLM                       # → le LLM ne répond pas (→ 502)
 from app.rag import repondre                        # → chaîne complète de /api/ask
 from app.store import BaseIndisponible, collection_active, rechercher
-from app.config import DOSSIER_SORTIE               # → data/processed/
+from app.config import DOSSIER_CORPUS, DOSSIER_SORTIE  # → data/corpus/ (les PDF) et data/processed/
 
 import json                                         # → lecture de documents.json
 import time                                         # → chronomètre pour latency_ms
@@ -137,6 +138,20 @@ def documents():
     # → le nom de fichier de chaque fragment présent dans la base
     return [{**d, "nb_fragments": fichiers.count(d["file"])} for d in docs]
     # → chaque document avec son nombre de fragments, compté dans la base active
+
+
+@app.get("/api/documents/{fichier}/pdf")                     # → le PDF d'un document (aperçu ou téléchargement)
+def document_pdf(fichier: str, download: bool = False):
+    pdf_du_corpus = {p.name for p in DOSSIER_CORPUS.glob("*.pdf")}  # → seuls les PDF du corpus sont servis
+    if fichier not in pdf_du_corpus:                          # → nom inconnu (ou tentative « ../ ») → 404
+        raise HTTPException(status_code=404, detail=f"Document introuvable : {fichier}")
+    return FileResponse(
+        DOSSIER_CORPUS / fichier,
+        media_type="application/pdf",
+        filename=fichier,
+        content_disposition_type="attachment" if download else "inline",
+        # → inline : le navigateur l'affiche (aperçu) ; attachment : il le télécharge (?download=true)
+    )
 
 
 @app.post("/api/ask", response_model=AskResponse)

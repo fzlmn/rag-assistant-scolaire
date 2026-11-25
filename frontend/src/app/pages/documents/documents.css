@@ -1,14 +1,42 @@
 /* frontend/src/app/pages/documents/documents.css — écran Documents */
 h2 { margin: 0 0 18px; font-size: clamp(1.5rem, 3vw, 1.9rem); color: var(--v); }
-.defilement { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--ombre); } /* → défile sur petit écran */
-table { width: 100%; border-collapse: collapse; }
-th { padding: 12px 16px; text-align: left; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--v-soft); }
-td { padding: 14px 16px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-tbody tr { transition: background 0.2s; animation: monter 0.4s both; }
-tbody tr:hover { background: #fcfbff; }
-tbody tr:nth-child(2) { animation-delay: 60ms; } tbody tr:nth-child(3) { animation-delay: 120ms; }
-tbody tr:nth-child(4) { animation-delay: 180ms; } tbody tr:nth-child(n+5) { animation-delay: 240ms; }
-tbody tr:last-child td { border-bottom: 0; }
-td strong { color: var(--o-ink); }
-small { color: var(--muted); }
+.indication { margin: -8px 0 18px; font-size: 0.88rem; color: var(--muted); }
+
+/* → grille de cartes : 3 colonnes sur grand écran, 1 sur mobile, jamais de défilement horizontal */
+.grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; }
+.carte {
+  display: flex; flex-direction: column; gap: 8px; padding: 18px; cursor: pointer;
+  background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--ombre);
+  transition: transform 0.2s, border-color 0.2s; animation: monter 0.4s both;
+}
+.carte:nth-child(2) { animation-delay: 60ms; } .carte:nth-child(3) { animation-delay: 120ms; } .carte:nth-child(n+4) { animation-delay: 180ms; }
+.carte:hover { transform: translateY(-3px); border-color: #cfc4ee; }
+.carte.selectionne { border-color: var(--o); }
+.carte.modificatif { border-left: 4px solid var(--o); }      /* → la Note de service, qui modifie un autre document */
+.tete { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.type { padding: 2px 10px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; color: var(--v); background: var(--v-soft); }
+.modificatif .type { color: var(--o-ink); background: var(--o-soft); }
+.date { font-size: 0.8rem; white-space: nowrap; color: var(--muted); }
+.carte h3 { font-size: 1.05rem; line-height: 1.3; }
+.ref { margin: 0; font-size: 0.8rem; color: var(--muted); }
+.statut { margin: 0; font-size: 0.88rem; }
+.modifie { margin: 0; font-size: 0.85rem; font-weight: 600; color: var(--o-ink); }
+.pied { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
+.pied small { color: var(--muted); }
+.boutons { display: flex; align-items: center; gap: 6px; }
+.petit { padding: 5px 12px; font-size: 0.8rem; }
+
+/* → fenêtre d'aperçu du PDF */
+.apercu { width: min(1040px, 94vw); height: 92vh; max-height: none; padding: 0; border: 0; border-radius: 18px; box-shadow: 0 24px 60px rgba(28, 21, 64, 0.3); }
+.apercu[open] { animation: monter 0.3s both; }
+.apercu::backdrop { background: rgba(28, 21, 64, 0.45); backdrop-filter: blur(2px); }
+.contenu { display: flex; flex-direction: column; height: 100%; }
+.contenu header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.contenu h3 { margin-bottom: 4px; font-size: 1.1rem; color: var(--v); }
+.contenu small { display: block; color: var(--muted); }
+.contenu .modifie { color: var(--o-ink); }
+.contenu .boutons { gap: 8px; }
+.fermer { width: 38px; height: 38px; padding: 0; color: var(--muted); background: #fff; border-color: var(--line); }
+.fermer:hover:not(:disabled) { color: var(--v); background: var(--v-soft); border-color: var(--v-soft); box-shadow: none; }
+iframe { flex: 1; width: 100%; border: 0; background: #f4f2f8; }
 @keyframes monter { from { opacity: 0; transform: translateY(8px); } }
