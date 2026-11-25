@@ -1,13 +1,36 @@
-/* frontend/src/styles.css — styles communs à toute l'application (Aya) */
-* { box-sizing: border-box; }
-body { margin: 0; font-family: system-ui, sans-serif; color: #1d2733; background: #f5f7fa; }
-button {
-  padding: 8px 14px; border: 0; border-radius: 6px;
-  background: #1f3a5f; color: #fff; cursor: pointer;
+/* frontend/src/styles.css — thème : blanc dominant, violet foncé (marque), orange clair (accent) */
+:root {
+  --v: #3d1e8f; --v-2: #5a35c8; --v-soft: #f7f4ff; --line: #e9e5f5;   /* → violet foncé, violet vif, fond très clair, traits fins */
+  --o: #ffa15c; --o-soft: #fff4ea; --o-ink: #a8510d;                  /* → orange clair, fond orangé, texte sur orange */
+  --ink: #1c1540; --muted: #6c6890;
+  --ombre: 0 1px 2px rgba(28, 21, 64, 0.04), 0 10px 28px rgba(28, 21, 64, 0.06);
 }
-button:disabled { opacity: 0.5; cursor: not-allowed; } /* → bouton désactivé pendant un appel */
-input, select, textarea { padding: 8px; border: 1px solid #c8d1dc; border-radius: 6px; font: inherit; }
-.erreur { background: #fdecea; color: #8a1c13; padding: 10px; border-radius: 6px; } /* → messages d'erreur */
-.chargement { color: #5a6b7d; font-style: italic; }                                 /* → indicateur de chargement */
-table { width: 100%; border-collapse: collapse; background: #fff; }
-th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e3e8ee; vertical-align: top; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-height: 100vh; font-family: system-ui, 'Segoe UI', sans-serif; line-height: 1.55; color: var(--ink); background: #fff; }
+h1, h2, h3 { margin: 0; line-height: 1.15; letter-spacing: -0.02em; color: var(--ink); }
+button, .btn {
+  display: inline-block; padding: 9px 18px; border: 1px solid var(--v); border-radius: 10px; cursor: pointer; font: inherit;
+  font-weight: 600; color: #fff; background: var(--v); text-decoration: none; transition: transform 0.15s, background 0.2s, box-shadow 0.2s;
+}
+:where(button:hover:not(:disabled), .btn:hover) { background: var(--v-2); border-color: var(--v-2); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(61, 30, 143, 0.22); }
+:where(button:active:not(:disabled)) { transform: scale(0.98); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }   /* → bouton désactivé pendant un appel */
+.btn.clair { color: var(--v); background: #fff; border-color: var(--line); }
+:where(.btn.clair:hover) { background: var(--v-soft); border-color: var(--v-soft); box-shadow: none; }
+input, select, textarea {
+  padding: 9px 13px; border: 1px solid var(--line); border-radius: 10px; font: inherit; color: var(--ink); background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, select:focus, textarea:focus { outline: 0; border-color: var(--v-2); box-shadow: 0 0 0 3px rgba(90, 53, 200, 0.12); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--o); outline-offset: 2px; }
+.erreur, .error-message {                                  /* → messages d'erreur */
+  padding: 11px 15px; border-radius: 12px; border-left: 3px solid var(--o); background: var(--o-soft); color: var(--o-ink); animation: monter 0.3s both;
+}
+.chargement { display: flex; align-items: center; gap: 10px; color: var(--muted); }   /* → indicateur de chargement */
+.chargement::before, .status-message::before {
+  content: ''; width: 14px; height: 14px; flex: none; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--o); animation: tourner 0.8s linear infinite;
+}
+@keyframes monter { from { opacity: 0; transform: translateY(12px); } }
+@keyframes tourner { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

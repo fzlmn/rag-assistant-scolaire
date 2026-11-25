@@ -1,21 +1,41 @@
-/* frontend/src/app/app.css — style de la barre de navigation (Aya) */
-.barre {                                   /* → barre du haut */
-  display: flex;
-  flex-wrap: wrap;                         /* → passe à la ligne sur mobile */
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #1f3a5f;
-  color: #fff;
+/* frontend/src/app/app.css — barre du haut, menu latéral, hamburger */
+.haut {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; height: 64px; padding: 0 clamp(14px, 3vw, 28px);
+  background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line);
 }
-.titre { font-weight: 600; }
-nav { display: flex; gap: 4px; }
+.marque { display: flex; align-items: center; gap: 10px; margin-right: auto; color: var(--ink); text-decoration: none; }
+.nom { display: flex; flex-direction: column; line-height: 1.15; }
+.nom strong { font-size: 1.1rem; letter-spacing: 0.04em; color: var(--v); }
+.nom small { font-size: 0.72rem; color: var(--muted); }
+@media (max-width: 640px) { .nom small { display: none; } }
+.burger { display: grid; gap: 5px; width: 40px; height: 40px; padding: 11px 9px; border-radius: 10px; background: transparent; border: 1px solid var(--line); box-shadow: none; }
+:where(.burger:hover:not(:disabled)) { background: var(--v-soft); border-color: var(--line); box-shadow: none; }
+.burger span { display: block; height: 2px; border-radius: 2px; background: var(--v); transition: transform 0.3s, opacity 0.2s; }
+.burger.ouvert span:nth-child(1) { transform: translateY(7px) rotate(45deg); }          /* → les 3 traits deviennent une croix */
+.burger.ouvert span:nth-child(2) { opacity: 0; }
+.burger.ouvert span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.voile { position: fixed; inset: 0; z-index: 30; background: rgba(28, 21, 64, 0.35); backdrop-filter: blur(2px); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.voile.ouvert { opacity: 1; visibility: visible; }
+.lateral {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 40; display: flex; flex-direction: column; width: min(290px, 84vw); padding: 22px 16px;
+  background: #fff; border-right: 1px solid var(--line); box-shadow: 20px 0 50px rgba(28, 21, 64, 0.1);
+  transform: translateX(-102%); visibility: hidden; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.35s;
+}
+.lateral.ouvert { transform: none; visibility: visible; }
+.lateral-tete { display: flex; align-items: center; gap: 12px; padding: 4px 8px 20px; border-bottom: 1px solid var(--line); }
+.lateral-tete strong { display: block; font-size: 1.2rem; letter-spacing: 0.04em; color: var(--v); }
+.lateral-tete small { color: var(--muted); }
+.etiquette { margin: 20px 10px 8px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+nav { display: grid; gap: 2px; }
 nav a {
-  color: #dbe6f3;
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 6px;
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 500;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
 }
-nav a.actif { background: #ffffff22; color: #fff; } /* → lien de l'écran affiché */
-main { padding: 16px; max-width: 1100px; margin: 0 auto; }
+nav a svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+nav a:hover { background: var(--v-soft); transform: translateX(3px); }
+nav a.actif { background: var(--v-soft); color: var(--v); font-weight: 700; }             /* → lien de l'écran affiché */
+nav a.actif::before { content: ''; position: absolute; left: -16px; top: 9px; bottom: 9px; width: 3px; border-radius: 3px; background: var(--o); }
+.lateral-pied { margin: auto 8px 0; font-size: 0.75rem; color: var(--muted); }
+main { max-width: 1100px; margin: 0 auto; padding: 32px clamp(16px, 3vw, 28px) 56px; }
+main > * { display: block; animation: monter 0.5s both; }   /* → l'écran affiché apparaît en douceur */
+@keyframes monter { from { opacity: 0; transform: translateY(12px); } }
