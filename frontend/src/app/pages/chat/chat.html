@@ -12,6 +12,10 @@
         @for (t of types(); track t) { <option [ngValue]="t">{{ t }}</option> }
     </select>
     </label>
+    @if (echanges().length) {
+    <!-- → vide l'historique : les questions suivantes repartent de zéro -->
+    <button type="button" class="nouvelle" [disabled]="enCours()" (click)="nouvelleConversation()">+ Nouvelle conversation</button>
+    }
 </div>
 
 <!-- Historique de la session -->
@@ -32,6 +36,8 @@
                 <!-- → citation cliquable ; désactivée (en rouge) si elle ne correspond à aucun fragment -->
                 <button class="citation" [disabled]="e.reponse.invalid_citations.includes(n)" (click)="choisirSource(i, n)">[{{ n }}]</button>
             }
+            } @else if (m.gras) {
+            <strong>{{ m.texte }}</strong>
             } @else {
             <span>{{ m.texte }}</span>
             }
@@ -40,6 +46,10 @@
             {{ e.reponse.latency_ms }} ms
             @if (e.reponse.invalid_citations.length) {
             · citations invalides : {{ e.reponse.invalid_citations.join(', ') }}
+            }
+            @if (questionComprise(e); as comprise) {
+            <!-- → comment l'assistant a compris une question mal écrite ou une question de suivi -->
+            <span class="comprise">Question comprise : {{ comprise }}</span>
             }
         </div>
         </div>

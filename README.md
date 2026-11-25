@@ -23,7 +23,9 @@ Ingestion (une fois) :
   PDF → extraction (texte, tableaux, métadonnées) → découpage → embeddings → base vectorielle Chroma
 
 Question (à chaque requête) :
-  Interface Angular → API FastAPI → recherche top-k → seuil de score → prompt → LLM → vérification des citations → réponse citée
+  Interface Angular → API FastAPI → recherche hybride top-k → seuil de score
+    → reformulation de la question par le LLM (avec les derniers échanges) → nouvelle recherche
+    → prompt → LLM → vérification des citations → réponse citée
 ```
 
 ---
@@ -107,7 +109,7 @@ cp .env.example .env
 | `LLM_MODEL` | modèle appelé | `openai/gpt-oss-120b` ou `llama3.2` |
 | `OLLAMA_URL` | adresse d'Ollama (si `ollama`) | `http://localhost:11434` |
 | `LLM_TIMEOUT` | délai maximal d'attente du LLM, en secondes | `30` (prévoir `120` pour un modèle local) |
-| `SCORE_THRESHOLD` | seuil de refus : si le meilleur score de la recherche est inférieur, l'API refuse sans appeler le LLM | `0.80` (à calibrer) |
+| `SCORE_THRESHOLD` | seuil de refus : si le meilleur score de la recherche est inférieur, l'API refuse sans appeler le LLM | `0.78` (calibré, voir « Questions libres ») |
 | `EMBEDDING_MODEL` | modèle d'embeddings (facultatif) | `intfloat/multilingual-e5-small` |
 
 Exemple pour un modèle local avec Ollama :
@@ -159,7 +161,7 @@ Toutes les routes sont préfixées par `/api`.
 | GET | `/api/documents` | Documents indexés, métadonnées, nombre de fragments | 503 si la base est indisponible |
 | GET | `/api/documents/{fichier}/pdf` | PDF d'un document du corpus : affiché dans le navigateur, ou téléchargé avec `?download=true` | 404 si le fichier n'est pas dans le corpus |
 | POST | `/api/search` | Recherche seule, sans LLM : fragments et scores | 422 si question vide |
-| POST | `/api/ask` | Recherche + génération avec citations, refus hors corpus et seuil | 422 ; 502 si le LLM ne répond pas ; 503 si la base est indisponible |
+| POST | `/api/ask` | Recherche + génération avec citations, refus hors corpus et seuil ; historique facultatif pour les questions de suivi | 422 ; 502 si le LLM ne répond pas ; 503 si la base est indisponible |
 
 Exemple `/api/search` :
 
@@ -175,6 +177,16 @@ POST /api/ask
 { "question": "Quelle est la durée minimale d'un PFE qui commence en février 2027 ?", "top_k": 5, "filters": { "type": null } }
 ```
 
+Question de suivi : le champ facultatif `history` contient les derniers échanges du chat (3 au plus sont utilisés).
+
+```json
+POST /api/ask
+{
+  "question": "et la max ?",
+  "history": [ { "question": "Durée minimale du PFE ?", "answer": "18 semaines [1]." } ]
+}
+```
+
 Réponse :
 
 ```json
@@ -185,11 +197,20 @@ Réponse :
     { "id": 1, "chunk_id": "…", "file": "…", "reference": "…", "date": "…", "page": 1, "section": "…", "excerpt": "…", "score": 0.0 }
   ],
   "invalid_citations": [],
-  "latency_ms": 0
+  "latency_ms": 0,
+  "question_comprise": "Quelle est la durée maximale du PFE ?"
 }
 ```
 
-Hors corpus : `found` vaut `false`, `answer` contient la phrase de refus et `sources` est vide. Le numéro `id` de chaque source est celui que le modèle cite dans la réponse ([1], [2]…).
+Hors corpus : `found` vaut `false`, `answer` contient la phrase de refus et `sources` est vide. Le numéro `id` de chaque source est celui que le modèle cite dans la réponse ([1], [2]…). `question_comprise` est la question reformulée par le LLM (absente si le seuil refuse avant tout appel au LLM).
+
+### Questions libres
+
+L'assistant accepte des questions mal écrites, en langage SMS, d'un seul mot, dans une autre langue, ou de suivi (« et la max ? ») :
+
+1. **Recherche hybride** (`store.py`) : le classement par le sens (embeddings) est fusionné avec un classement par mots-clés (BM25, sans accents ni mots vides). Les sigles comme « sdia » ou « CSR » retrouvent ainsi le bon fragment. Sur 22 questions familières, le bon fragment est dans les 5 premiers pour 20 questions (17 avec la recherche par le sens seule). Le `score` renvoyé reste la similarité cosinus ; l'ordre des résultats est celui de la fusion.
+2. **Seuil** : appliqué à la question brute, avant tout appel au LLM, quand il n'y a pas d'historique. Recalibré à 0,78 sur les scores mesurés : les questions du corpus mal écrites obtiennent au moins 0,79 (« CSR », « kan est la rentree »), les questions sans rapport au plus 0,77 (« capitale de la France »). Les cas proches (« prix d'un repas ») sont refusés par le prompt.
+3. **Reformulation** (`rag.py`, `prompt.py`) : le LLM réécrit la question en une question complète et autonome, à l'aide des derniers échanges (« et la CSR c'est quoi ? » → « Qu'est-ce que la filière CSR (Cybersécurité et Réseaux) ? »), puis la recherche est refaite avec elle. La réponse est toujours tirée des seuls fragments : l'historique sert à reformuler, jamais de source. Si le LLM échoue, la question d'origine est utilisée.
 
 ---
 

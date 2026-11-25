@@ -22,6 +22,12 @@ export interface ReponseQuestion { // → réponse de POST /api/ask
   sources: Source[];               // → fragments fournis au modèle
   invalid_citations: number[];     // → numéros cités qui ne correspondent à aucun fragment
   latency_ms: number;              // → temps de réponse
+  question_comprise?: string | null; // → la question telle que l'assistant l'a comprise (reformulée)
+}
+
+export interface EchangePrecedent { // → un échange déjà affiché, renvoyé à /api/ask (champ « history »)
+  question: string;                // →   pour comprendre une question de suivi : « et la max ? »
+  answer: string;
 }
 
 export interface Fragment {        // → un résultat de POST /api/search

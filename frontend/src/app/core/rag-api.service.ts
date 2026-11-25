@@ -10,16 +10,18 @@ import { Injectable, inject } from '@angular/core';          // → déclaration
 import { Observable } from 'rxjs';                           // → type des réponses asynchrones
 
 import { environment } from '../../environments/environment'; // → contient apiUrl
-import { DocumentInfo, ReponseQuestion, ReponseRecherche } from './models'; // → formes des réponses
+import { DocumentInfo, EchangePrecedent, ReponseQuestion, ReponseRecherche } from './models'; // → formes des données
 
 @Injectable({ providedIn: 'root' })                          // → un seul service pour toute l'application
 export class RagApiService {
   private http = inject(HttpClient);                         // → récupère le client HTTP
   private url = environment.apiUrl;                          // → ex. http://localhost:8000/api
 
-  poser(question: string, topK: number, type: string | null): Observable<ReponseQuestion> {
+  poser(question: string, topK: number, type: string | null,
+        historique: EchangePrecedent[] = []): Observable<ReponseQuestion> {
     return this.http.post<ReponseQuestion>(`${this.url}/ask`, {
       question, top_k: topK, filters: { type },              // → même corps que celui attendu par FastAPI
+      history: historique,                                   // → derniers échanges, pour les questions de suivi
     });
   }
 
