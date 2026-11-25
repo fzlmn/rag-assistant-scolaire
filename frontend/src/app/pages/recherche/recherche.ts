@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -19,30 +19,30 @@ export class Recherche {
   topK = 5;
   type = '';
 
-  loading = false;
-  error = '';
-  response: ReponseRecherche | null = null;
+  loading = signal(false);                                   // → signals : Angular 21 (sans zone.js) met l'écran
+  error = signal('');                                        //   à jour quand ils changent, même après une réponse HTTP
+  response = signal<ReponseRecherche | null>(null);
 
   rechercher(): void {
     const question = this.question.trim();
 
-    if (!question || this.loading) {
+    if (!question || this.loading()) {
       return;
     }
 
-    this.loading = true;
-    this.error = '';
-    this.response = null;
+    this.loading.set(true);
+    this.error.set('');
+    this.response.set(null);
 
     this.api
       .rechercher(question, this.topK, this.type.trim() || null)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (resultat) => {
-          this.response = resultat;
+          this.response.set(resultat);
         },
         error: (e: Error) => {
-          this.error = e.message;                            // → message clair préparé par l'intercepteur
+          this.error.set(e.message);                         // → message clair préparé par l'intercepteur
         },
       });
   }
@@ -51,7 +51,7 @@ export class Recherche {
     this.question = '';
     this.type = '';
     this.topK = 5;
-    this.response = null;
-    this.error = '';
+    this.response.set(null);
+    this.error.set('');
   }
 }

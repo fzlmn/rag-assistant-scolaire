@@ -41,8 +41,8 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" [disabled]="loading || !question.trim()">
-          {{ loading ? 'Recherche en cours...' : 'Rechercher' }}
+        <button type="submit" [disabled]="loading() || !question.trim()">
+          {{ loading() ? 'Recherche en cours...' : 'Rechercher' }}
         </button>
         <button type="button" class="reset-button" (click)="reinitialiser()">
           Réinitialiser
@@ -51,15 +51,15 @@
     </form>
   </section>
 
-  @if (loading) {
+  @if (loading()) {
     <p class="status-message">Recherche des fragments en cours...</p>
   }
 
-  @if (error) {
-    <div class="error-message">{{ error }}</div>
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
   }
 
-  @if (response; as resultat) {
+  @if (response(); as resultat) {
     <section class="results-section">
       <div class="results-header">
         <h2>Résultats de recherche</h2>
