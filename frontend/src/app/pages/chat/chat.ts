@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';                // → [(ngModel)] 
 
 import { Sources } from '../../components/sources/sources';  // → panneau des sources
 import { ReponseQuestion, Source } from '../../core/models';  // → formes des données
+import { QUESTIONS_EXEMPLES } from '../../core/questions-exemples'; // → questions prêtes à cliquer
 import { RagApiService } from '../../core/rag-api.service';   // → appels à l'API
 
 interface Morceau {                                          // → un morceau de la réponse affichée
@@ -55,6 +56,7 @@ export class Chat implements OnInit {
   enCours = signal(false);                                   // → vrai pendant un appel : chargement + bouton désactivé
   sourcesAffichees = signal<Source[]>([]);                   // → sources montrées dans le panneau
   selection = signal<number | null>(null);                   // → numéro de la source cliquée
+  readonly exemples = QUESTIONS_EXEMPLES;                    // → questions d'exemple, au-dessus de la saisie
 
   ngOnInit(): void {
     this.api.documents().subscribe({                         // → au démarrage, récupère les documents…
@@ -82,6 +84,22 @@ export class Chat implements OnInit {
         this.enCours.set(false);
       },
     });
+  }
+
+  poserExemple(question: string): void {
+    // → clic sur une question d'exemple : elle est envoyée comme si on l'avait tapée
+    if (this.enCours()) return;                              // → une réponse est déjà en attente
+    this.question = question;
+    this.envoyer();
+  }
+
+  defilerExemples(e: WheelEvent): void {
+    // → la molette (verticale) fait défiler la rangée d'exemples de gauche à droite
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;     // → pavé tactile : défilement déjà horizontal
+    const rangee = e.currentTarget as HTMLElement;
+    const avant = rangee.scrollLeft;
+    rangee.scrollLeft += e.deltaY;
+    if (rangee.scrollLeft !== avant) e.preventDefault();     // → au bout de la rangée, la page défile normalement
   }
 
   choisirSource(index: number, id: number): void {

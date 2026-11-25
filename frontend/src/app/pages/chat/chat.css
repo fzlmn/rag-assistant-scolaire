@@ -1,7 +1,8 @@
 /* frontend/src/app/pages/chat/chat.css — écran Conversation */
-.disposition { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
-@media (max-width: 800px) { .disposition { grid-template-columns: 1fr; } } /* → sur mobile : panneau des sources sous la conversation */
-.conversation { padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--ombre); }
+.disposition { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+/* → minmax(0, …) : une colonne ne s'élargit pas pour un contenu trop long (la rangée d'exemples défile à la place) */
+@media (max-width: 800px) { .disposition { grid-template-columns: minmax(0, 1fr); } } /* → sur mobile : panneau des sources sous la conversation */
+.conversation { min-width: 0; padding: 20px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--ombre); }
 .reglages { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; padding: 10px 12px; border-radius: 12px; background: var(--v-soft); }
 .reglages label { display: flex; align-items: center; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
 .reglages input { width: 70px; margin-left: 8px; padding: 5px 9px; }
@@ -21,4 +22,15 @@
 .saisie { display: flex; gap: 10px; margin-top: 18px; }
 .saisie input { flex: 1; min-width: 0; padding: 11px 18px; border-radius: 99px; }
 .saisie button { padding-inline: 24px; border-radius: 99px; }
+/* → questions d'exemple : une seule rangée au-dessus de la saisie, qui défile horizontalement */
+.exemples {
+  display: flex; gap: 8px; margin-top: 18px; padding-bottom: 6px; overflow-x: auto; scrollbar-width: thin;
+  mask-image: linear-gradient(to right, #000 92%, transparent);   /* → bord droit estompé : on devine qu'il y a une suite */
+}
+.exemples + .saisie { margin-top: 8px; }
+.puce {
+  flex: none; padding: 5px 13px; border: 1px solid var(--line); border-radius: 99px; white-space: nowrap;
+  font-size: 0.82rem; font-weight: 500; color: var(--ink); background: var(--v-soft);
+}
+.puce:hover:not(:disabled) { color: var(--v); background: #fff; border-color: var(--o); box-shadow: none; transform: none; }
 @keyframes monter { from { opacity: 0; transform: translateY(12px); } }
