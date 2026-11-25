@@ -3,27 +3,50 @@
 @if (enCours()) { <p class="chargement">Chargement…</p> }
 @if (erreur()) { <p class="erreur">{{ erreur() }}</p> }
 @if (documents().length) {
-<div class="defilement">                    <!-- → défilement horizontal du tableau sur mobile -->
-<table>
-    <thead>
-    <tr><th>Document</th><th>Référence</th><th>Type</th><th>Date</th><th>Version</th><th>Fragments</th><th>Statut</th></tr>
-    </thead>
-    <tbody>
+<p class="indication">{{ documents().length }} documents · {{ totalFragments() }} fragments indexés · cliquez sur une carte pour afficher le PDF.</p>
+<div class="grille">
     @for (d of documents(); track d.file) {
-        <tr>
-        <td>{{ d.title }}<br /><small>{{ d.file }}</small></td>
-        <td>{{ d.reference }}</td>
-        <td>{{ d.doc_type }}</td>
-        <td>{{ d.date }}</td>
-        <td>{{ d.version }}</td>
-        <td>{{ d.nb_fragments }}</td>
-        <td>
-            {{ d.status }}
-            @if (d.modifies.length) { <br /><strong>Modifie : {{ d.modifies.join(', ') }}</strong> }
-        </td>
-        </tr>
+    <!-- → une carte par document ; un clic n'importe où sur la carte ouvre l'aperçu -->
+    <article class="carte" [class.modificatif]="d.modifies.length" [class.selectionne]="ouvert()?.file === d.file" (click)="ouvrir(d)">
+        <div class="tete">
+        <span class="type">{{ d.doc_type }}</span>
+        <span class="date">{{ d.date | date: 'dd/MM/yyyy' }}</span>
+        </div>
+        <h3>{{ d.title }}</h3>
+        <p class="ref">{{ d.reference }} · version {{ d.version }}</p>
+        <p class="statut">{{ d.status }}</p>
+        @if (d.modifies.length) { <p class="modifie">Modifie : {{ d.modifies.join(', ') }}</p> } <!-- → texte modificatif -->
+        <div class="pied">
+        <small>{{ d.nb_fragments }} fragments · {{ d.pages }} page(s)</small>
+        <div class="boutons">
+            <!-- → stopPropagation : le clic sur un bouton ne déclenche pas aussi celui de la carte -->
+            <button type="button" class="petit" (click)="ouvrir(d); $event.stopPropagation()">Aperçu</button>
+            <a class="btn clair petit" [href]="lien(d, true)" (click)="$event.stopPropagation()"
+               [attr.aria-label]="'Télécharger ' + d.title">Télécharger</a>
+        </div>
+        </div>
+    </article>
     }
-    </tbody>
-</table>
 </div>
 }
+
+<!-- Aperçu du PDF : <dialog> s'affiche au premier plan ; Échap ou un clic sur le fond le ferme -->
+<dialog #fenetre class="apercu" (close)="ouvert.set(null)" (click)="clicFenetre($event)">
+@if (ouvert(); as d) {
+    <div class="contenu">
+    <header>
+        <div>
+        <h3>{{ d.title }}</h3>
+        <small>{{ d.reference }} · {{ d.doc_type }} · {{ d.date | date: 'dd/MM/yyyy' }} · {{ d.pages }} page(s)</small>
+        @if (d.modifies.length) { <small class="modifie">Modifie : {{ d.modifies.join(', ') }}</small> }
+        </div>
+        <div class="boutons">
+        <a class="btn clair" [href]="lien(d)" target="_blank" rel="noopener">Ouvrir dans un onglet</a>
+        <a class="btn" [href]="lien(d, true)">Télécharger</a>
+        <button type="button" class="fermer" aria-label="Fermer l'aperçu" (click)="fermer()">✕</button>
+        </div>
+    </header>
+    <iframe [src]="apercu()" [title]="'Aperçu de ' + d.title"></iframe>
+    </div>
+}
+</dialog>

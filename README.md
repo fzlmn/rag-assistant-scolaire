@@ -157,6 +157,7 @@ Toutes les routes sont préfixées par `/api`.
 | GET | `/api/health` | État du service et nombre de fragments indexés | 503 si la base est indisponible |
 | POST | `/api/ingest` | (Ré)indexation : `strategy`, `chunk_size`, `overlap` | 422 si paramètres invalides |
 | GET | `/api/documents` | Documents indexés, métadonnées, nombre de fragments | 503 si la base est indisponible |
+| GET | `/api/documents/{fichier}/pdf` | PDF d'un document du corpus : affiché dans le navigateur, ou téléchargé avec `?download=true` | 404 si le fichier n'est pas dans le corpus |
 | POST | `/api/search` | Recherche seule, sans LLM : fragments et scores | 422 si question vide |
 | POST | `/api/ask` | Recherche + génération avec citations, refus hors corpus et seuil | 422 ; 502 si le LLM ne répond pas ; 503 si la base est indisponible |
 

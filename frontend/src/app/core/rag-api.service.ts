@@ -32,4 +32,9 @@ export class RagApiService {
   documents(): Observable<DocumentInfo[]> {
     return this.http.get<DocumentInfo[]>(`${this.url}/documents`); // → liste des documents indexés
   }
+
+  urlPdf(fichier: string, telecharger = false): string {
+    // → adresse du PDF (GET /api/documents/{fichier}/pdf) : affiché par le navigateur, ou téléchargé
+    return `${this.url}/documents/${encodeURIComponent(fichier)}/pdf${telecharger ? '?download=true' : ''}`;
+  }
 }
