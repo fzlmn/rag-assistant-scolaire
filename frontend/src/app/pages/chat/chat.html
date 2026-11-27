@@ -18,8 +18,8 @@
     }
 </div>
 
-<!-- Historique de la session -->
-<div class="historique">
+<!-- Historique de la session : seule zone qui défile ; #historique permet d'y descendre automatiquement -->
+<div class="historique" #historique>
     @if (echanges().length === 0) {
     <p class="aide">Posez une question sur le règlement, les stages, la mobilité, le calendrier…<br />ou choisissez un exemple ci-dessous.</p>
     }

@@ -2,8 +2,8 @@
 <section class="hero">
   <div class="hero-texte">
     <span class="pastille">Campus numérique · Rentrée 2026</span>
-    <h1>Former les ingénieurs et les penseurs de <em>demain</em>.</h1>
-    <p>L'École d'Ingénierie et d'Humanités associe sciences, technologies et sciences humaines dans un campus ouvert sur le monde.</p>
+    <h1>Former les ingénieurs de <em>demain</em>.</h1>
+    <p>L'École d'Ingénieurs Hélianthe forme ses étudiants en trois ans au cycle ingénieur, avec trois filières : informatique, données et intelligence artificielle, cybersécurité.</p>
     <div class="actions">
       <a class="btn" routerLink="/conversation">Poser une question</a>
       <a class="btn clair" routerLink="/documents">Explorer les documents</a>
@@ -11,8 +11,8 @@
   </div>
   <div class="hero-visuel" aria-hidden="true">
     <span class="rond r1"></span><span class="rond r2"></span>
-    <div class="carte-logo"><app-logo [taille]="84" /><strong>EIH</strong><small>Depuis 1987</small></div>
-    <span class="puce p1">Ingénierie</span><span class="puce p2">Humanités</span><span class="puce p3">Design</span>
+    <div class="carte-logo"><app-logo [taille]="84" /><strong>EIH</strong><small>Année 2026-2027</small></div>
+    <span class="puce p1">IGL</span><span class="puce p2">SDIA</span><span class="puce p3">CSR</span>
   </div>
 </section>
 
@@ -23,8 +23,8 @@
 </section>
 
 <section class="bloc">
-  <h2>Nos formations</h2>
-  <p class="sous">Quatre grands domaines, des parcours à la carte.</p>
+  <h2>Les filières du cycle ingénieur</h2>
+  <p class="sous">Choisie à la fin de la 1re année, la filière est suivie à partir de la 2A.</p>
   <div class="grille">
     @for (f of formations; track f.titre; let i = $index) {
       <article class="carte" [style.--i]="i"><span class="num">0{{ i + 1 }}</span><h3>{{ f.titre }}</h3><p>{{ f.texte }}</p></article>
@@ -44,4 +44,4 @@
   </div>
 </section>
 
-<footer class="pied">© 2026 EIH — École d'Ingénierie et d'Humanités · établissement fictif à visée pédagogique.</footer>
+<footer class="pied">© 2026 EIH — École d'Ingénieurs Hélianthe · établissement fictif à visée pédagogique.</footer>
